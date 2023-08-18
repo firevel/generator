@@ -11,7 +11,7 @@ class AppYamlGenerator extends BaseGenerator
         $resource = $this->resource();
         $projectType = $this->logger()->choice(
             'Does your project consist of multiple services or just one?',
-            ['One service', 'Multiple services'],
+            ['Multiple services', 'One service'],
             'One service'
         );
 
