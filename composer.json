@@ -1,0 +1,33 @@
+{
+    "name": "firevel/generator",
+    "description": "Firevel resources generator",
+    "keywords": ["firevel", "laravel", "php", "api", "resource"],
+    "homepage": "https://github.com/firevel/generator",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Michael Slowik"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.3",
+        "illuminate/support": "~5.8.0|^6.0|^7.0|^8.0|^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Firevel\\Generator\\": "src"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Firevel\\Generator\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev"
+}
