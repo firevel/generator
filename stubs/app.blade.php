@@ -7,7 +7,6 @@ service: {{$name}}
 env_variables:
   FILESYSTEM_DISK: gcs
   FILESYSTEM_CLOUD: gcs
-  APP_STORAGE: /tmp
   VIEW_COMPILED_PATH: /tmp
   LOG_CHANNEL: stackdriver
   SESSION_DRIVER: firestore
@@ -15,6 +14,7 @@ env_variables:
   ## Store bootstrap cache files in writeable /tmp.
   APP_SERVICES_CACHE: /tmp/bootstrap-cache-services.php
   APP_PACKAGES_CACHE: /tmp/bootstrap-cache-packages.php
+  LARAVEL_STORAGE_PATH: /tmp
 build_env_variables:
   GOOGLE_COMPOSER_VERSION: 2.5.8
   APP_SERVICES_CACHE: /tmp/bootstrap-cache-services.php
