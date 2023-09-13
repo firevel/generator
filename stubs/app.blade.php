@@ -8,7 +8,8 @@ env_variables:
   FILESYSTEM_DISK: gcs
   FILESYSTEM_CLOUD: gcs
   VIEW_COMPILED_PATH: /tmp
-  LOG_CHANNEL: stackdriver
+  LOG_CHANNEL: stderr
+  LOG_STDERR_FORMATTER: Monolog\Formatter\GoogleCloudLoggingFormatter
   SESSION_DRIVER: firestore
   CACHE_DRIVER: firestore
   ## Store bootstrap cache files in writeable /tmp.
