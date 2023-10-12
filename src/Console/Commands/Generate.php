@@ -13,7 +13,7 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'firevel:generate {pipeline} {--only=}';
+    protected $signature = 'firevel:generate {pipeline?} {--only=} {--json=}';
 
     /**
      * The console command description.
@@ -29,6 +29,7 @@ class Generate extends Command
      */
     public function handle()
     {
+        $attributes = [];
         $pipeline = $this->argument('pipeline');
 
         $pipelines = config('generator.pipelines');
@@ -38,7 +39,11 @@ class Generate extends Command
             return;
         }
 
-        $resource = new Resource();
+        if (!empty($this->option('json'))) {
+            $attributes = json_decode(file_get_contents($this->option('json')), true);
+        }
+
+        $resource = new Resource($attributes);
         $geneators = $pipelines[$pipeline];
 
         if (!empty($this->option('only'))) {
