@@ -5,6 +5,7 @@ namespace Firevel\Generator;
 use Firevel\Generator\ResourceCollection;
 use Firevel\Generator\ResourceItem;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -68,7 +69,23 @@ class Resource implements Arrayable
      */
     public function has($key)
     {
+        if (strpos($key, '.')) {
+            return Arr::has($this->attributes, $key);
+        }
         return ! empty($this->attributes[$key]);
+    }
+
+    /**
+     * Get resource value.
+     * @param  string $key
+     * @return mixed
+     */
+    public function get($key)
+    {
+        if (strpos($key, '.')) {
+            return Arr::get($this->attributes, $key);
+        }
+        return $this->attributes[$key];
     }
 
     /**
