@@ -23,8 +23,8 @@ class {{$resource->name()->singular()->studly()}} extends Model
      * @var array
      */
     protected $fillable = [
-@if ($resource->has('fillable'))
-@foreach ($resource->fillable as $value)
+@if ($resource->has('model.fillable'))
+@foreach ($resource->model['fillable'] as $value)
         '{{$value}}',
 @endforeach
 @endif
@@ -36,8 +36,8 @@ class {{$resource->name()->singular()->studly()}} extends Model
      * @var array
      */
     protected $casts = [
-@if ($resource->has('casts'))
-@foreach ($resource->casts as $key => $value)
+@if ($resource->has('model.casts'))
+@foreach ($resource->model['casts'] as $key => $value)
         '{{$key}}' => '{{$value}}',
 @endforeach
 @endif
@@ -49,8 +49,8 @@ class {{$resource->name()->singular()->studly()}} extends Model
      * @var array
      */
     protected $sortable = [
-@if ($resource->has('sortable'))
-@foreach ($resource->sortable as $value)
+@if ($resource->has('model.sortable'))
+@foreach ($resource->model['sortable'] as $value)
         '{{$value}}',
 @endforeach
 @endif
@@ -62,15 +62,15 @@ class {{$resource->name()->singular()->studly()}} extends Model
      * @var array
      */
     protected $filterable = [
-@if ($resource->has('filterable'))
-@foreach ($resource->filterable as $key => $value)
+@if ($resource->has('model.filterable'))
+@foreach ($resource->model['filterable'] as $key => $value)
         '{{$key}}' => '{{$value}}',
 @endforeach
 @endif
     ];
 
-@if ($resource->has('relationships'))
-@foreach ($resource->relationships as $key => $value)
+@if ($resource->has('model.relationships'))
+@foreach ($resource->model['relationships'] as $key => $value)
     public function {{$key}}(): {{Str::studly($value)}}
     {
         return $this->{{Str::camel($value)}}(\App\Models\{{Str::studly(Str::singular($key))}}::class);
