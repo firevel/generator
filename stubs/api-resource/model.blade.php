@@ -57,6 +57,19 @@ class {{$resource->name()->singular()->studly()}} extends Model
     ];
 
     /**
+     * The models default values for attributes
+     * 
+     * @var array
+     */
+    protected $attributes = [
+@if ($resource->has('model.attributes'))
+@foreach ($resource->model['attributes'] as $key => $value)
+        '{{$key}}' => '{{$value}}',
+@endforeach
+@endif
+    ];
+
+    /**
      * Fields with filtering.
      * 
      * @var array
