@@ -2,7 +2,10 @@
 
 namespace Firevel\Generator;
 
+use Firevel\Generator\ResourceCollection;
+use Firevel\Generator\ResourceItem;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -12,11 +15,6 @@ use Illuminate\Support\Str;
 class Resource implements Arrayable
 {
     /**
-     * @var string
-     */
-    public $name;
-
-    /**
      * Array with resource attributes.
      *
      * @var array
@@ -24,191 +22,127 @@ class Resource implements Arrayable
     public $attributes = [];
 
     /**
-     * Get name as it was passed to the constructor.
+     * Constructor.
      *
-     * @return string
+     * @param array $attributes
      */
-    public function name(): string
+    public function __construct(array $attributes = [])
     {
-        return $this->name;
+        $this->attributes = $attributes;
     }
 
     /**
-     * Get singular resource name.
+     * Check if resource got no attributes.
      *
-     * @return string
+     * @return bool
      */
-    public function singular(): string
+    public function empty()
     {
-        return Str::singular($this->name);
+        return empty($this->attributes);
     }
 
     /**
-     * Get plural resource name.
+     * Check if resource got some attributes.
      *
-     * @return string
+     * @return bool
      */
-    public function plural(): string
+    public function notEmpty()
     {
-        return Str::plural($this->name);
+        return ! empty($this->attributes);
     }
 
     /**
-     * Get singular resource name in camel case.
-     *
-     * @return string
-     */
-    public function singularCamel(): string
-    {
-        return Str::camel($this->singular());
-    }
-
-    /**
-     * Get plural resource name in camel case.
-     *
-     * @return string
-     */
-    public function pluralCamel(): string
-    {
-        return Str::camel($this->plural());
-    }
-
-    /**
-     * Get singular resource name in snake case.
-     *
-     * @return string
-     */
-    public function singularSnake(): string
-    {
-        return Str::snake($this->singular());
-    }
-
-    /**
-     * Get plural resource name in snake case.
-     *
-     * @return string
-     */
-    public function pluralSnake(): string
-    {
-        return Str::snake($this->plural());
-    }
-
-    /**
-     * Get singular resource name in pascal case.
-     *
-     * @return string
-     */
-    public function singularPascal(): string
-    {
-        return Str::studly($this->singular());
-    }
-
-
-    /**
-     * Get plural resource name in pascal case.
-     *
-     * @return string
-     */
-    public function pluralPascal(): string
-    {
-        return Str::studly($this->plural());
-    }
-
-    /**
-     * Get singular resource name with the first character in lower case.
-     * @return string
-     */
-    public function singularLowercaseFirst(): string
-    {
-        return lcfirst($this->singular());
-    }
-
-    /**
-     * Get plural resource name with the first character in lower case.
-     * @return string
-     */
-    public function pluralLowercaseFirst(): string
-    {
-        return lcfirst($this->plural());
-    }
-
-    /**
-     * Get plural resource name in kebab case.
-     * @return string
-     */
-    public function pluralKebab(): string
-    {
-        return Str::kebab($this->plural());
-    }
-
-    /**
-     * Get all forms of the resource name as an array.
+     * Get all attributes as array.
      *
      * @return array
      */
-    public function toArray(): array
-    {
-        return [
-            'name' => $this->name(),
-            'singular' => $this->singular(),
-            'plural' => $this->plural(),
-            'singular_camel' => $this->singularCamel(),
-            'plural_camel' => $this->pluralCamel(),
-            'singular_snake' => $this->singularSnake(),
-            'plural_snake' => $this->pluralSnake(),
-            'singular_pascal' => $this->singularPascal(),
-            'plural_pascal' => $this->pluralPascal(),
-            'singular_lcfirst' => $this->singularLowercaseFirst(),
-            'plural_lcfirst' => $this->pluralLowercaseFirst(),
-            'plural_kebab' => $this->pluralKebab(),
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getAttribute($key)
-    {
-        if (empty($this->attributes[$key])) {
-            return null;
-        }
-        return $this->attributes[$key];
-    }
-
-    /**
-     * Set resource attribute.
-     *
-     * @param string $key   [description]
-     * @param [type] $value [description]
-     */
-    public function setAttribute(string $key, $value)
-    {
-        $this->attributes[$key] = $value;
-
-        return $this;
-    }
-
-    /**
-     * Get all resource attributes.
-     *
-     * @return array
-     */
-    public function getAttributes(): array
+    public function toArray()
     {
         return $this->attributes;
     }
 
     /**
-     * Update all attributes.
+     * Determine if an attribute exists.
      *
-     * @param array $attributes
-     *
-     * @return self
+     * @param  string  $key
+     * @return bool
      */
-    public function setAttributes(array $attributes)
+    public function has($key)
     {
-        $this->attributes = $attributes;
+        if (strpos($key, '.')) {
+            return Arr::has($this->attributes, $key);
+        }
+        return ! empty($this->attributes[$key]);
+    }
 
-        return $this;
+    /**
+     * Get resource value.
+     * @param  string $key
+     * @return mixed
+     */
+    public function get($key)
+    {
+        if (strpos($key, '.')) {
+            return Arr::get($this->attributes, $key);
+        }
+        return $this->attributes[$key];
+    }
+
+    /**
+     * Dynamically retrieve attribute.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->attributes[$key];
+    }
+
+    /**
+     * Dynamically set attribute.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->attributes[$key] = $value;
+    }
+
+    /**
+     * Determine if an attribute exists.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function __isset($key)
+    {
+        return $this->has($key);
+    }
+
+    /**
+     * Handle dynamic method calls.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (empty($this->attributes[$method])) {
+            return null;
+        }
+
+        if (is_array($this->attributes[$method])) {
+            return new ResourceCollection($this->attributes[$method]);
+        }
+
+        if (is_string($this->attributes[$method])) {
+            return new ResourceItem($this->attributes[$method]);
+        }
+
+        throw new \Exception('Unsupported attribute type');
     }
 }

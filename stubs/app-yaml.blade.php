@@ -1,7 +1,7 @@
-runtime: {{$runtime}}
+runtime: {{$resource->runtime}}
 
-@if (!empty($name))
-service: {{$name}}
+@if ($resource->has('name'))
+service: {{$resource->name}}
 @endif
 
 env_variables:

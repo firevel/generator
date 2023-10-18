@@ -31,7 +31,7 @@ class ResourceGenerator
         foreach ($this->generators as $name => $class) {
             $generatorInstance = new $class($this->resource);
             $generatorInstance->setLogger($this->logger());
-            $generatorInstance->generate();
+            $generatorInstance->handle();
             $this->logger()->info('');
         }
     }

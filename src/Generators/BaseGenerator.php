@@ -54,6 +54,6 @@ abstract class BaseGenerator
         file_put_contents($path, $content);
     }
 
-    abstract public function generate();
+    abstract public function handle();
 }
 
