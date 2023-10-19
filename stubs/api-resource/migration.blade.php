@@ -13,17 +13,14 @@ return new class extends Migration
 @if ($resource->has('migration.create'))
         Schema::create('{{$resource->name()->plural()->snake()}}', function (Blueprint $table) {
 @foreach ($resource->migration['create'] as $chain)
-            $table
-@foreach ($chain as $method => $params)
-                ->{{$method}}({!! empty($params) ? '' : collect($params)
-                        ->transform(function($param) {
-                            if (is_string($param)) {
-                                return "'{$param}'";
-                            }
-                            return $param;
-                        })
-                        ->implode(', ')!!}){{$loop->last ? ';': ''}}
-@endforeach
+            {{ '$table' }}@foreach ($chain as $method => $params)->{{$method}}({!! empty($params) ? '' : collect($params)
+                ->transform(function($param) {
+                    if (is_string($param)) {
+                        return "'{$param}'";
+                    }
+                    return $param;
+                })
+                ->implode(', ')!!}){{$loop->last ? ';': ''}}@endforeach
 @endforeach
         });
 @endif
