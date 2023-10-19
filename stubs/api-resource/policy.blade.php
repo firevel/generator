@@ -13,10 +13,10 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can view any models.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @return mixed
      */
-    public function viewAny(Authenticatable $user)
+    public function viewAny(Authenticatable $authenticatable)
     {
         return true;
     }
@@ -24,11 +24,11 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can view the model.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @param {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
      * @return mixed
      */
-    public function view(Authenticatable $user, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
+    public function view(Authenticatable $authenticatable, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return true;
     }
@@ -36,10 +36,10 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can create models.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @return mixed
      */
-    public function create(Authenticatable $user)
+    public function create(Authenticatable $authenticatable)
     {
         return true;
     }
@@ -47,11 +47,11 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can update the model.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @param {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
      * @return mixed
      */
-    public function update(Authenticatable $user, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
+    public function update(Authenticatable $authenticatable, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return true;
     }
@@ -59,11 +59,11 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @param {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
      * @return mixed
      */
-    public function delete(Authenticatable $user, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
+    public function delete(Authenticatable $authenticatable, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return true;
     }
@@ -71,11 +71,11 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can restore the model.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @param {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
      * @return mixed
      */
-    public function restore(Authenticatable $user, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
+    public function restore(Authenticatable $authenticatable, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return true;
     }
@@ -83,11 +83,11 @@ class {{$resource->name()->singular()->studly()}}Policy
     /**
      * Determine whether the user can permanently delete the model.
      *
-     * @param Authenticatable $user
+     * @param Authenticatable $authenticatable
      * @param {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
      * @return mixed
      */
-    public function forceDelete(Authenticatable $user, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}}
+    public function forceDelete(Authenticatable $authenticatable, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return true;
     }
