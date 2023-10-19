@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Firevel\Filterable\Filterable;
 use Firevel\Sortable\Sortable;
-use Illuminate\Contracts\Auth\Authenticatable;
+@if ($resource->has('model.authenticatable'))
+use Illuminate\Foundation\Auth\User as Authenticatable;
+@endif
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 @if ($resource->has('relationships'))
@@ -12,15 +14,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{{Str::studly($relationship)}}
 @endforeach
 @endif
+@if ($resource->has('model.use'))
+@foreach ($resource->model['use'] as $name => $namespace)
+use {{$namespace}};
+@endforeach
+@endif
 
-class {{$resource->name()->singular()->studly()}} extends Model
+class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('model.authenticatable') ? 'Authenticatable' : 'Model'  }}
 {
-    use Sortable, HasFactory, Filterable;
+    use HasFactory,
+@if ($resource->has('model.use'))
+@foreach ($resource->model['use'] as $name => $namespace)
+    {{$name}},
+@endforeach
+@endif
+    Sortable,
+    Filterable;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $fillable = [
 @if ($resource->has('model.fillable'))
@@ -31,9 +45,9 @@ class {{$resource->name()->singular()->studly()}} extends Model
     ];
 
     /**
-     * Json objects
+     * The attributes that should be hidden for serialization.
      *
-     * @var array
+     * @var @var array<int, string>
      */
     protected $casts = [
 @if ($resource->has('model.casts'))
@@ -46,7 +60,7 @@ class {{$resource->name()->singular()->studly()}} extends Model
     /**
      * Fields allowed for sorting.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $sortable = [
 @if ($resource->has('model.sortable'))
@@ -57,9 +71,9 @@ class {{$resource->name()->singular()->studly()}} extends Model
     ];
 
     /**
-     * The models default values for attributes
+     * The models default values for attributes.
      * 
-     * @var array
+     * @var array<int, string>
      */
     protected $attributes = [
 @if ($resource->has('model.attributes'))
