@@ -5,7 +5,7 @@ echo '<?php';
 
 namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
-use Firevel\ApiResourceGenerator\Http\Requests\ApiRequest;
+use Firevel\Api\Http\Requests\ApiRequest;
 
 class Store{{$resource->name()->singular()->studly()}} extends ApiRequest
 {
