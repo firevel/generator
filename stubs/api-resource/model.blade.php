@@ -9,8 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 @endif
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-@if ($resource->has('relationships'))
-@foreach ($resource->relationships()->unique() as $relationship)
+@if ($resource->has('model.relationships'))
+@foreach ($resource->model['relationships']->unique() as $relationship)
 use Illuminate\Database\Eloquent\Relations\{{Str::studly($relationship)}}
 @endforeach
 @endif
