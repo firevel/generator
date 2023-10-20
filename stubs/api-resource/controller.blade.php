@@ -30,7 +30,7 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
 
         $this->transformer = $transformer;
 
-        $this->authorizeResource({{$resource->name()->singular()->studly()}}::class, '{{$resource->name()->singular()->camel()}}');
+        $this->authorizeResource({{$resource->name()->singular()->studly()}}::class);
     }
 
     /**
