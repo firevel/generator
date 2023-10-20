@@ -10,7 +10,6 @@ use App\Http\Requests\Api\{{$resource->name()->singular()->studly()}}\Show{{$res
 use App\Http\Requests\Api\{{$resource->name()->singular()->studly()}}\Update{{$resource->name()->singular()->studly()}};
 use App\Models\{{$resource->name()->singular()->studly()}};
 use App\Transformers\{{$resource->name()->singular()->studly()}}Transformer;
-use Firevel\ApiResourceGenerator\Traits\RespondsWithJson;
 use Illuminate\Support\Facades\Response;
 
 class {{$resource->name()->plural()->studly()}}Controller extends Controller
