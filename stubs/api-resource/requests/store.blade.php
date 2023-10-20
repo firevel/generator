@@ -1,4 +1,7 @@
-{!! "<\?php" !!}
+@php
+echo '<?php';
+@endphp
+
 
 namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 

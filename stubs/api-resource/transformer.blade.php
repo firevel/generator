@@ -1,4 +1,7 @@
-{!! "<\?php" !!}
+@php
+echo '<?php';
+@endphp
+
 
 namespace App\Transformers;
 

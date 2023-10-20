@@ -1,4 +1,7 @@
-{!! "<\?php" !!}
+@php
+echo '<?php';
+@endphp
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
