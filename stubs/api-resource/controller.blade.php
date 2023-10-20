@@ -17,8 +17,6 @@ use Illuminate\Support\Facades\Response;
 
 class {{$resource->name()->plural()->studly()}}Controller extends Controller
 {
-    use RespondsWithJson;
-
     /**
      * @var {{$resource->name()->singular()->studly()}}Transformer
      */
