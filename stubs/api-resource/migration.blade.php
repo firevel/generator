@@ -25,6 +25,7 @@ return new class extends Migration
                     return $param;
                 })
                 ->implode(', ')!!}){{$loop->last ? ';': ''}}@endforeach
+
 @endforeach
         });
 @endif
