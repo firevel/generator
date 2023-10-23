@@ -7,7 +7,7 @@ return [
         ],
         'api-resource' => [
             'get-parameters' => \Firevel\Generator\Generators\ApiResource\GetParameters::class,
-            'migration' => \Firevel\Generator\Generators\ApiResource\MigrationGenerator::class,
+            'migrations' => \Firevel\Generator\Generators\ApiResource\MigrationsGenerator::class,
             'model' => \Firevel\Generator\Generators\ApiResource\ModelGenerator::class,
             'transformer' => \Firevel\Generator\Generators\ApiResource\TransformerGenerator::class,
             'controller' => \Firevel\Generator\Generators\ApiResource\ControllerGenerator::class,

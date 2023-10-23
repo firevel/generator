@@ -14,9 +14,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-@if ($resource->has('migration.create'))
+@if ($resource->has('migrations.create'))
         Schema::create('{{$resource->name()->plural()->snake()}}', function (Blueprint $table) {
-@foreach ($resource->migration['create'] as $chain)
+@foreach ($resource->migrations['create'] as $chain)
             {{ '$table' }}@foreach ($chain as $method => $params)->{{$method}}({!! empty($params) ? '' : collect($params)
                 ->transform(function($param) {
                     if (is_string($param)) {

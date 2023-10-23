@@ -5,7 +5,7 @@ namespace Firevel\Generator\Generators\ApiResource;
 use Firevel\ApiResourceGenerator\Resource;
 use Firevel\Generator\Generators\BaseGenerator;
 
-class MigrationGenerator extends BaseGenerator
+class MigrationsGenerator extends BaseGenerator
 {
     public function handle()
     {
