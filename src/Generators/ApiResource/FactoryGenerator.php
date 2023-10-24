@@ -10,14 +10,19 @@ class FactoryGenerator extends BaseGenerator
     public function handle()
     {
         $resource = $this->resource();
-        $name = $resource->name;
+        $name = $resource->name()->singular()->studly();
 
-        $this->artisan(
-            'make:factory',
+        $source = $this->render(
+            'api-resource/factory',
             [
-                'name' => $name,
+                'resource' => $resource,
             ]
         );
+
+        $path = database_path('factories' . '/' . $name . "Factory.php");
+
+        $this->createFile($path, $source);
+
         $this->logger()->info("# Factory created: {$name}Factory");
         $this->logger()->info('- [Optional] Set factory fields.');
         $this->logger()->info('  - Available formatters https://fakerphp.github.io/');
