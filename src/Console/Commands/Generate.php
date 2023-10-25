@@ -40,7 +40,7 @@ class Generate extends Command
         }
 
         if (!empty($this->option('json'))) {
-            $attributes = json_decode(file_get_contents($this->option('json')), true);
+            $attributes = json_decode(file_get_contents($this->option('json')), true, 512, JSON_THROW_ON_ERROR);
         }
 
         $resource = new Resource($attributes);
