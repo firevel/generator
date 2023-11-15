@@ -7,9 +7,7 @@ namespace App\Models;
 
 use Firevel\Filterable\Filterable;
 use Firevel\Sortable\Sortable;
-@if ($resource->has('model.authenticatable'))
 use Illuminate\Foundation\Auth\User as Authenticatable;
-@endif
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 @if ($resource->has('model.relationships'))
