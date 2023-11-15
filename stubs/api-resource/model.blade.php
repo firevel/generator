@@ -48,9 +48,9 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * The attributes that should be cast.
      *
-     * @var @var array<int, string>
+     * @var array
      */
     protected $casts = [
 @if ($resource->has('model.casts'))
