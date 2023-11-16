@@ -57,6 +57,20 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 @endforeach
 @endif
     ];
+@if ($resource->has('model.touches'))
+
+    /**
+     * All of the relationships to be touched.
+     *
+     * @var array
+     */
+    protected $touches = [
+@if ($resource->has('model.touches'))
+@foreach ($resource->model['touches'] as $value)
+        '{{$value}}',
+@endforeach
+    ];
+@endif
 
     /**
      * Fields allowed for sorting.
