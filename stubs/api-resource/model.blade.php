@@ -65,7 +65,6 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
      * @var array
      */
     protected $touches = [
-@if ($resource->has('model.touches'))
 @foreach ($resource->model['touches'] as $value)
         '{{$value}}',
 @endforeach
