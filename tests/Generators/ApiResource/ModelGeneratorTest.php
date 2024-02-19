@@ -39,5 +39,84 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertMatchesRegularExpression($pattern, $generator->generateSource());
     }
 
+    /** @test */
+    public function test_relationship_use()
+    {
+        $resource = new Resource([
+            'name' => 'Comment',
+            'model' => [
+                'relationships' => [
+                    'user' => 'belongsTo'
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('function user(): BelongsTo', $generator->generateSource());
+        $this->assertStringContainsString('$this->belongsTo(\App\Models\User::class)', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_relationship_strings()
+    {
+        $resource = new Resource([
+            'name' => 'Comment',
+            'model' => [
+                'relationships' => [
+                    'user' => [
+                        'belongsTo' => ['User::class', 'foreign_key', 'owner_key']
+                    ],
+                    'role' => [
+                        'belongsToMany' => ['Role::class']
+                    ]
+
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+        $source = $generator->generateSource();
+
+        $this->assertStringContainsString('use Illuminate\Database\Eloquent\Relations\BelongsTo;', $source);
+        $this->assertStringContainsString('use Illuminate\Database\Eloquent\Relations\BelongsToMany;', $source);
+    }
+
+    /** @test */
+    public function test_relationship_multiparams()
+    {
+        $resource = new Resource([
+            'name' => 'Comment',
+            'model' => [
+                'relationships' => [
+                    'user' => [
+                        'belongsTo' => ['User::class', 'foreign_key', 'owner_key']
+                    ]
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('function user(): BelongsTo', $generator->generateSource());
+        $this->assertStringContainsString('$this->belongsTo(\App\Models\User::class, \'foreign_key\', \'owner_key\')', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_relationship_singleparam()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'relationships' => [
+                    'role' => [
+                        'belongsToMany' => ['Role::class']
+                    ]
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('function role(): BelongsToMany', $generator->generateSource());
+        $this->assertStringContainsString('$this->belongsToMany(\App\Models\Role::class)', $generator->generateSource());
+    }
+
 
 }

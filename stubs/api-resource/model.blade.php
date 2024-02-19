@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 @if ($resource->has('model.relationships'))
-@foreach (collect($resource->model['relationships'])->unique() as $relationship)
+@foreach (collect($resource->model['relationships'])->transform(fn($relationship) => is_string($relationship) ? $relationship : array_key_first($relationship))->unique()->values() as $relationship)
 use Illuminate\Database\Eloquent\Relations\{{Str::studly($relationship)}};
 @endforeach
 @endif
@@ -112,11 +112,23 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 
 @if ($resource->has('model.relationships'))
 @foreach ($resource->model['relationships'] as $key => $value)
+@if (is_string($value))
     public function {{$key}}(): {{Str::studly($value)}}
     {
         return $this->{{Str::camel($value)}}(\App\Models\{{Str::studly(Str::singular($key))}}::class);
     }
+@else
+@php
+   $relationship = array_key_first($value);
+@endphp
+    public function {{$key}}(): {{Str::studly($relationship)}}
+    {
+        return $this->@foreach($value as $key => $params){{Str::camel($key)}}({!!collect($params)->transform(function($param, $key) {return (str_ends_with($param, '::class')) ? "\\App\\Models\\$param": "'{$param}'";})->implode(', ')!!});@endforeach
+
+    }
+@endif
 @endforeach
+
 @endif
 
     /**
