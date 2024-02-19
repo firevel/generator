@@ -21,8 +21,7 @@
         "illuminate/support": "~5.8.0|^6.0|^7.0|^8.0|^9.0|^10.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^8.18",
-        "phpunit/phpunit": "^9.3"
+        "orchestra/testbench": "^8.18"
     },
     "autoload": {
         "psr-4": {
