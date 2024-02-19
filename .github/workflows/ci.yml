@@ -9,6 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - uses: php-actions/composer@v6
-      - run: echo "Composer dependencies have been installed"
-      - run: vendor/bin/phpunit
+      - name: Installing dependencies
+        uses: php-actions/composer@v6
+        with:
+          php_version: 8.1
+      - name: Running unit test
+        uses: php-actions/phpunit@v3
+        with:
+          version: 9.6
+          php_version: 8.1
