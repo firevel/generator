@@ -9,18 +9,7 @@ class ModelGenerator extends BaseGenerator
 {
     public function handle()
     {
-        $resource = $this->resource();
-        $params['fillable'] = '// @TODO set filables.';
-        $params['casts'] = '// @TODO set casting.';
-        $params['sortable'] = '// @TODO set sortable columns.';
-        $params['fillable'] = "'id' => 'id',";
-
-        $source = $this->render(
-            'api-resource/model',
-            [
-                'resource' => $resource,
-            ]
-        );
+        $source = $this->generateSource();
 
         $path = app_path('Models') . '/' . $resource->name()->singular()->studly() . ".php";
         $this->createFile($path, $source);
@@ -32,5 +21,17 @@ class ModelGenerator extends BaseGenerator
         $this->logger()->info('- [Optional] Set model $filterable (allowed filters "id", "string", "integer", "date", "datetime")');
         $this->logger()->info('- [Optional] Set relationships');
         $this->logger()->info('  - Allowed relationships https://laravel.com/docs/eloquent-relationships');
+    }
+
+    public function generateSource()
+    {
+        $resource = $this->resource();
+
+        return $this->render(
+            'api-resource/model',
+            [
+                'resource' => $resource,
+            ]
+        );        
     }
 }
