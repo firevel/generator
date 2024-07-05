@@ -34,6 +34,22 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     Sortable,
     Filterable;
 
+@if ($resource->has('model.properties'))
+@foreach ($resource->model['properties'] as $name => $value)
+@if (is_string($value))
+    protected {{'$'}}{{$name}} = "{{$value}}";
+
+@endif
+@if (is_bool($value))
+    protected {{'$'}}{{$name}} = {{json_encode($value)}};
+
+@endif
+@if (is_int($value))
+    protected {{'$'}}{{$name}} = {{$value}};
+
+@endif
+@endforeach
+@endif
     /**
      * The attributes that are mass assignable.
      *

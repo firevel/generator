@@ -118,5 +118,52 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertStringContainsString('$this->belongsToMany(\App\Models\Role::class)', $generator->generateSource());
     }
 
+    /** @test */
+    public function test_boolean_model_properties()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'incrementing' => false
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('protected $incrementing = false;', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_integer_model_properties()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'userId' => 11
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('protected $userId = 11;', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_string_model_properties()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'primaryKey' => 'uuid'
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('protected $primaryKey = "uuid";', $generator->generateSource());
+    }
 
 }
