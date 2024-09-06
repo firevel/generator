@@ -10,6 +10,7 @@ class ModelGenerator extends BaseGenerator
     public function handle()
     {
         $source = $this->generateSource();
+        $resource = $this->resource();
 
         $path = app_path('Models') . '/' . $resource->name()->singular()->studly() . ".php";
         $this->createFile($path, $source);
