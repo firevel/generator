@@ -119,6 +119,23 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
     }
 
     /** @test */
+    public function test_morphto_relationship()
+    {
+        $resource = new Resource([
+            'name' => 'Image',
+            'model' => [
+                'relationships' => [
+                    'imageable' => 'morphTo'
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('function imageable(): MorphTo', $generator->generateSource());
+        $this->assertStringContainsString('$this->morphTo()', $generator->generateSource());
+    }
+
+    /** @test */
     public function test_boolean_model_properties()
     {
         $resource = new Resource([
