@@ -8,6 +8,9 @@ namespace App\Models;
 use Firevel\Filterable\Filterable;
 use Firevel\Sortable\Sortable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+@if ($resource->has('model.observers'))
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+@endif
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 @if ($resource->has('model.relationships'))
@@ -21,6 +24,13 @@ use {{$namespace}};
 @endforeach
 @endif
 
+@foreach ($resource->model['observers'] as $observer)
+@if (str_contains($observer, '\\'))
+#[ObservedBy([{{$observer}}::class])]
+@else
+#[ObservedBy([\App\Observers\{{$observer}}::class])]
+@endif
+@endforeach
 class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('model.authenticatable') ? 'Authenticatable' : 'Model'  }}
 {
     use HasFactory,
