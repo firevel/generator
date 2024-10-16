@@ -7,12 +7,12 @@ namespace App\Models;
 
 use Firevel\Filterable\Filterable;
 use Firevel\Sortable\Sortable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 @if ($resource->has('model.observers'))
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 @endif
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 @if ($resource->has('model.relationships'))
 @foreach (collect($resource->model['relationships'])->transform(fn($relationship) => is_string($relationship) ? $relationship : array_key_first($relationship))->unique()->values() as $relationship)
 use Illuminate\Database\Eloquent\Relations\{{Str::studly($relationship)}};
