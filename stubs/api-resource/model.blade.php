@@ -24,6 +24,7 @@ use {{$namespace}};
 @endforeach
 @endif
 
+@if ($resource->has('model.observers'))
 @foreach ($resource->model['observers'] as $observer)
 @if (str_contains($observer, '\\'))
 #[ObservedBy([{{$observer}}::class])]
@@ -31,6 +32,7 @@ use {{$namespace}};
 #[ObservedBy([\App\Observers\{{$observer}}::class])]
 @endif
 @endforeach
+@endif
 class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('model.authenticatable') ? 'Authenticatable' : 'Model'  }}
 {
     use HasFactory,

@@ -166,4 +166,37 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertStringContainsString('protected $primaryKey = "uuid";', $generator->generateSource());
     }
 
+    /** @test */
+    public function test_model_observers()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'observers' => [
+                    'UserObserver'
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('#[ObservedBy([\App\Observers\UserObserver::class])]
+', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_package_model_observers()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'observers' => [
+                    '\OtherPackage\Observers\UserObserver'
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('#[ObservedBy([\OtherPackage\Observers\UserObserver::class])]
+', $generator->generateSource());
+    }
 }
