@@ -129,10 +129,17 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 @if ($resource->has('model.relationships'))
 @foreach ($resource->model['relationships'] as $key => $value)
 @if (is_string($value))
+@if ($value == 'morphTo')
+    public function {{$key}}(): {{Str::studly($value)}}
+    {
+        return $this->{{Str::camel($value)}}();
+    }
+@else
     public function {{$key}}(): {{Str::studly($value)}}
     {
         return $this->{{Str::camel($value)}}(\App\Models\{{Str::studly(Str::singular($key))}}::class);
     }
+@endif
 @else
 @php
    $relationship = array_key_first($value);
