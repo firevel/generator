@@ -2,6 +2,7 @@
 
 namespace Firevel\Generator\Console\Commands;
 
+use Firevel\Generator\FirevelGeneratorManager;
 use Firevel\Generator\Resource;
 use Firevel\Generator\ResourceGenerator;
 use Illuminate\Console\Command;
