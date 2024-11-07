@@ -32,7 +32,7 @@ class Generate extends Command
         $attributes = [];
         $pipeline = $this->argument('pipeline');
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         if (empty($pipelines[$pipeline])) {
             $this->error("Pipeline '{$pipeline}' is not configured.");

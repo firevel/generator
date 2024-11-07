@@ -4,6 +4,7 @@ namespace Firevel\Generator;
 
 use Firevel\Generator\Console\Commands\Generate;
 use Firevel\Generator\Console\Commands\MakeApiResource;
+use Firevel\Generator\FirevelGeneratorManager;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 /**
@@ -17,6 +18,10 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function boot()
     {
+        $this->app->singleton(FirevelGeneratorManager::class, function () {
+            return new FirevelGeneratorManager();
+        });
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Generate::class
