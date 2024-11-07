@@ -18,10 +18,6 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function boot()
     {
-        $this->app->singleton(FirevelGeneratorManager::class, function () {
-            return new FirevelGeneratorManager();
-        });
-
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Generate::class
@@ -39,6 +35,10 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(FirevelGeneratorManager::class, function () {
+            return new FirevelGeneratorManager();
+        });
+
         $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'generator');
     }
 }
