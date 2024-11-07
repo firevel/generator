@@ -216,4 +216,18 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertStringContainsString('#[ObservedBy([\OtherPackage\Observers\UserObserver::class])]
 ', $generator->generateSource());
     }
+
+    /** @test */
+    public function test_model_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'extends' => 'Extendable'
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('class User extends Extendable', $generator->generateSource());
+    }
 }

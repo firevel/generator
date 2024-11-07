@@ -33,7 +33,7 @@ use {{$namespace}};
 @endif
 @endforeach
 @endif
-class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('model.authenticatable') ? 'Authenticatable' : 'Model'  }}
+class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('model.authenticatable') ? 'Authenticatable' : ($resource->has('model.extends') ? $resource->model['extends'] : 'Model')  }}
 {
     use HasFactory,
 @if ($resource->has('model.use'))
