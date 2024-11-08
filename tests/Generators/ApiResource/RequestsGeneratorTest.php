@@ -64,4 +64,98 @@ class RequestsGeneratorTest extends \Orchestra\Testbench\TestCase
 
         $this->assertStringContainsString('class UpdateUser ', $generator->generateSource('update', $resource));
     }
+
+    /** @test */
+    public function test_default_index_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends ApiRequest', $generator->generateSource('index', $resource));
+    }
+
+    /** @test */
+    public function test_index_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'requests' => [
+                'index' => [
+                    'extends' => 'CustomRequest'
+                ]
+            ]
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends CustomRequest', $generator->generateSource('index', $resource));
+    }
+
+    /** @test */
+    public function test_store_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'requests' => [
+                'store' => [
+                    'extends' => 'CustomRequest'
+                ]
+            ]
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends CustomRequest', $generator->generateSource('store', $resource));
+    }
+
+    /** @test */
+    public function test_destroy_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'requests' => [
+                'destroy' => [
+                    'extends' => 'CustomRequest'
+                ]
+            ]
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends CustomRequest', $generator->generateSource('destroy', $resource));
+    }
+
+    /** @test */
+    public function test_show_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'requests' => [
+                'show' => [
+                    'extends' => 'CustomRequest'
+                ]
+            ]
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends CustomRequest', $generator->generateSource('show', $resource));
+    }
+
+    /** @test */
+    public function test_update_extends()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'requests' => [
+                'update' => [
+                    'extends' => 'CustomRequest'
+                ]
+            ]
+        ]);
+        $generator = new RequestsGenerator($resource);
+
+        $this->assertStringContainsString('extends CustomRequest', $generator->generateSource('update', $resource));
+    }
+//
+
+
 }

@@ -7,7 +7,7 @@ namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
 use Firevel\Api\Http\Requests\Api\ApiRequest;
 
-class Store{{$resource->name()->singular()->studly()}} extends ApiRequest
+class Store{{$resource->name()->singular()->studly()}} extends {{$resource->has('requests.store.extends') ? $resource->get('requests.store.extends') : 'ApiRequest' }}
 {
     /**
      * Determine if the user is authorized to make this request.

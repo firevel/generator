@@ -7,7 +7,7 @@ namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
 use Firevel\Api\Http\Requests\Api\ApiRequest;
 
-class Index{{$resource->name()->plural()->studly()}} extends ApiRequest
+class Index{{$resource->name()->plural()->studly()}} extends {{$resource->has('requests.index.extends') ? $resource->get('requests.index.extends') : 'ApiRequest' }}
 {
     /**
      * Determine if the user is authorized to make this request.

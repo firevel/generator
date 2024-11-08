@@ -7,7 +7,7 @@ namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
 use Firevel\Api\Http\Requests\Api\ApiRequest;
 
-class Update{{$resource->name()->singular()->studly()}} extends ApiRequest
+class Update{{$resource->name()->singular()->studly()}} extends {{$resource->has('requests.update.extends') ? $resource->get('requests.update.extends') : 'ApiRequest' }}
 {
     /**
      * Determine if the user is authorized to make this request.
