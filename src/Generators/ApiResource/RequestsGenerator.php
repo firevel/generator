@@ -13,13 +13,7 @@ class RequestsGenerator extends BaseGenerator
         $actions = ['index', 'store', 'show', 'update', 'destroy'];
 
         foreach ($actions as $action) {
-            $source = $this->render(
-                'api-resource/requests/' . $action,
-                [
-                    'resource' => $resource,
-                ]
-            );
-
+            $source = $this->generateSource($action, $resource);
 
             $filename = $resource->name()->singular()->studly();
             if ($action == 'index') {
@@ -34,4 +28,13 @@ class RequestsGenerator extends BaseGenerator
         }
    }
 
+    public function generateSource($action, $resource)
+    {
+        return $this->render(
+            'api-resource/requests/' . $action,
+            [
+                'resource' => $resource,
+            ]
+        );        
+    }
 }
