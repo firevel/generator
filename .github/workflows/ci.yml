@@ -16,5 +16,5 @@ jobs:
       - name: Running unit test
         uses: php-actions/phpunit@v3
         with:
-          version: 11.0
+          version: 11.4
           php_version: 8.4
