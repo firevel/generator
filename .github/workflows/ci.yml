@@ -12,9 +12,9 @@ jobs:
       - name: Installing dependencies
         uses: php-actions/composer@v6
         with:
-          php_version: 8.1
+          php_version: 8.4
       - name: Running unit test
         uses: php-actions/phpunit@v3
         with:
-          version: 9.6
-          php_version: 8.1
+          version: 11.0
+          php_version: 8.4

@@ -15,16 +15,15 @@ class FirevelGeneratorManagerTest extends \Orchestra\Testbench\TestCase
 
         $this->manager = new FirevelGeneratorManager();
 
-        Config::shouldReceive('get')
-            ->with('generator.pipelines', [])
-            ->andReturn([
-                'api-resource' => [
-                    'model' => \Firevel\Generator\Generators\ApiResource\ModelGenerator::class,
-                ],
-                'app.yaml' => [
-                    'yaml' => \Firevel\Generator\Generators\App\YamlGenerator::class,
-                ],
-            ]);
+        $config = [
+            'api-resource' => [
+                'model' => \Firevel\Generator\Generators\ApiResource\ModelGenerator::class,
+            ],
+            'app.yaml' => [
+                'yaml' => \Firevel\Generator\Generators\App\YamlGenerator::class,
+            ],
+        ];
+        Config::set('generator.pipelines', $config);
     }
 
     public function testExtendRegistersPipeline()
