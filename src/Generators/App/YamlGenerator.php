@@ -28,8 +28,8 @@ class YamlGenerator extends BaseGenerator
 
             $resource->runtime = $this->logger()->choice(
                 'What runtime you would like to use?',
-                ['php81', 'php82'],
-                'php82'
+                ['php81', 'php82', 'php83'],
+                'php83'
             );
         }
 
