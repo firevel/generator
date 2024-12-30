@@ -60,6 +60,7 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 @endif
 @endforeach
 @endif
+
     /**
      * The attributes that are mass assignable.
      *
