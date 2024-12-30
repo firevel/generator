@@ -46,17 +46,17 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 
 @if ($resource->has('model.properties'))
 @foreach ($resource->model['properties'] as $name => $value)
-@if (is_string($value))
-    protected {{'$'}}{{$name}} = "{{$value}}";
-
-@endif
-@if (is_bool($value))
-    protected {{'$'}}{{$name}} = {{json_encode($value)}};
-
-@endif
-@if (is_int($value))
-    protected {{'$'}}{{$name}} = {{$value}};
-
+@php
+    $propertyName = is_array($value) ? $value['name'] : $name;
+    $propertyValue = is_array($value) ? $value['value'] : $value;
+    $visibility = is_array($value) && isset($value['visibility']) ? $value['visibility'] : 'protected';
+@endphp
+@if (is_string($propertyValue))
+    {{$visibility}} {{'$'}}{{$propertyName}} = "{{$propertyValue}}";
+@elseif (is_bool($propertyValue))
+    {{$visibility}} {{'$'}}{{$propertyName}} = {{json_encode($propertyValue)}};
+@elseif (is_int($propertyValue))
+    {{$visibility}} {{'$'}}{{$propertyName}} = {{$propertyValue}};
 @endif
 @endforeach
 @endif

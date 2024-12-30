@@ -174,6 +174,22 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
             'name' => 'User',
             'model' => [
                 'properties' => [
+                    ['name' => 'incrementing', 'value' => false, 'visibility' => 'public']
+                ]
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+
+        $this->assertStringContainsString('public $incrementing = false;', $generator->generateSource());
+    }
+
+    /** @test */
+    public function test_model_properties_visibility()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
                     'primaryKey' => 'uuid'
                 ]
             ]
