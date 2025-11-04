@@ -17,5 +17,22 @@ return [
             'policy' => \Firevel\Generator\Generators\ApiResource\PolicyGenerator::class,
             'route' => \Firevel\Generator\Generators\ApiResource\RouteGenerator::class,
         ],
+        'routes' => [
+            'consolidate' => \Firevel\Generator\Generators\ApiResource\RoutesConsolidatorGenerator::class,
+        ],
+        'app' => [
+            [
+                'scope' => 'service',
+                'pipeline' => 'app.yaml',
+            ],
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'api-resource',
+            ],
+            [
+                'scope' => 'resources',
+                'pipeline' => 'routes',
+            ],
+        ],
    ],
 ];

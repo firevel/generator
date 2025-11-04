@@ -2,6 +2,7 @@
 
 namespace Firevel\Generator\Generators;
 
+use Firevel\Generator\PipelineContext;
 use Firevel\Generator\Resource;
 use Illuminate\Support\Facades\Artisan;
 
@@ -9,10 +10,12 @@ abstract class BaseGenerator
 {
     protected $resource;
     protected $logger;
+    protected $context;
 
-    public function __construct(Resource $resource)
+    public function __construct(Resource $resource, PipelineContext $context = null)
     {
         $this->resource = $resource;
+        $this->context = $context ?? new PipelineContext(false);
     }
 
     protected function artisan($command, $parameters = [])
@@ -32,6 +35,11 @@ abstract class BaseGenerator
 
     public function resource() {
         return $this->resource;
+    }
+
+    public function context()
+    {
+        return $this->context;
     }
 
     public function render($stub, $attributes)
