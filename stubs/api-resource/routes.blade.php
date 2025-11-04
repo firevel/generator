@@ -19,6 +19,12 @@ use App\Http\Controllers\Api\{{$route['resourceName']}}Controller;
 |
 */
 
+@if (count($routes) === 1)
+{!! $routes[0]['code'] !!}
+@else
+Route::apiResources([
 @foreach ($routes as $route)
-{{$route['code']}}
+    '{{ $route['name'] }}' => {!! $route['controller'] !!},
 @endforeach
+]);
+@endif
