@@ -128,7 +128,7 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 
     /**
      * Fields with filtering.
-     * 
+     *
      * @var array
      */
     protected $filterable = [
@@ -138,6 +138,19 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
 @endforeach
 @endif
     ];
+@if ($resource->has('model.searchable'))
+
+    /**
+     * Fields that are searchable.
+     *
+     * @var array<int, string>
+     */
+    protected $searchable = [
+@foreach ($resource->model['searchable'] as $value)
+        '{{$value}}',
+@endforeach
+    ];
+@endif
 
 @if ($resource->has('model.relationships'))
 @foreach ($resource->model['relationships'] as $key => $value)
@@ -178,4 +191,16 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     {
         return $query;
     }
+@if ($resource->has('model.searchable'))
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return $this->only($this->searchable);
+    }
+@endif
 }

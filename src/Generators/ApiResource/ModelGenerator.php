@@ -20,6 +20,7 @@ class ModelGenerator extends BaseGenerator
         $this->logger()->info('  - Allowed mutators https://laravel.com/docs/eloquent-mutators#attribute-casting');
         $this->logger()->info('- [Optional] Set model $sortable (all fields allowed by default)');
         $this->logger()->info('- [Optional] Set model $filterable (allowed filters "id", "string", "integer", "date", "datetime")');
+        $this->logger()->info('- [Optional] Set model $searchable (defines fields for search indexing via toSearchableArray())');
         $this->logger()->info('- [Optional] Set relationships');
         $this->logger()->info('  - Allowed relationships https://laravel.com/docs/eloquent-relationships');
     }

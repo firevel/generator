@@ -246,4 +246,54 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
 
         $this->assertStringContainsString('class User extends Extendable', $generator->generateSource());
     }
+
+    /** @test */
+    public function test_searchable_array()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'searchable' => ['name', 'email', 'bio']
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+        $source = $generator->generateSource();
+
+        // Check that $searchable array exists
+        $this->assertStringContainsString('protected $searchable = [', $source);
+        $this->assertStringContainsString("'name',", $source);
+        $this->assertStringContainsString("'email',", $source);
+        $this->assertStringContainsString("'bio',", $source);
+    }
+
+    /** @test */
+    public function test_to_searchable_array_method()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'searchable' => ['name', 'email']
+            ]
+        ]);
+        $generator = new ModelGenerator($resource);
+        $source = $generator->generateSource();
+
+        // Check that toSearchableArray method exists
+        $this->assertStringContainsString('public function toSearchableArray(): array', $source);
+        $this->assertStringContainsString('return $this->only($this->searchable);', $source);
+    }
+
+    /** @test */
+    public function test_no_searchable_when_not_defined()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+        ]);
+        $generator = new ModelGenerator($resource);
+        $source = $generator->generateSource();
+
+        // Check that searchable is not present when not defined
+        $this->assertStringNotContainsString('protected $searchable', $source);
+        $this->assertStringNotContainsString('toSearchableArray', $source);
+    }
 }
