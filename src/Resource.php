@@ -62,6 +62,16 @@ class Resource implements Arrayable
     }
 
     /**
+     * Get all attributes as array (alias for toArray).
+     *
+     * @return array
+     */
+    public function all()
+    {
+        return $this->attributes;
+    }
+
+    /**
      * Determine if an attribute exists.
      *
      * @param  string  $key
