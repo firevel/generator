@@ -20,7 +20,7 @@ return [
         'routes' => [
             'consolidate' => \Firevel\Generator\Generators\ApiResource\RoutesConsolidatorGenerator::class,
         ],
-        'app' => [
+        'appengine-app' => [
             [
                 'scope' => 'service',
                 'pipeline' => 'app.yaml',
