@@ -16,14 +16,14 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'firevel:generate {pipeline?} {--only=} {--json=}';
+    protected $signature = 'firevel:generate {pipeline? : Pipeline name or comma-separated list of pipelines} {--only=} {--json=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate a new resource.';
+    protected $description = 'Generate a new resource. Supports multiple pipelines separated by commas.';
 
     /**
      * Execute the console command.
@@ -33,13 +33,19 @@ class Generate extends Command
     public function handle()
     {
         $attributes = [];
-        $pipeline = $this->argument('pipeline');
+        $pipelineArg = $this->argument('pipeline');
+
+        // Support multiple pipelines separated by commas
+        $pipelineNames = array_map('trim', explode(',', $pipelineArg));
 
         $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
-        if (empty($pipelines[$pipeline])) {
-            $this->error("Pipeline '{$pipeline}' is not configured.");
-            return;
+        // Validate all pipelines exist before executing any
+        foreach ($pipelineNames as $pipelineName) {
+            if (empty($pipelines[$pipelineName])) {
+                $this->error("Pipeline '{$pipelineName}' is not configured.");
+                return;
+            }
         }
 
         if (!empty($this->option('json'))) {
@@ -47,13 +53,29 @@ class Generate extends Command
         }
 
         $resource = new Resource($attributes);
-        $pipelineConfig = $pipelines[$pipeline];
 
+        // Execute each pipeline in sequence
+        foreach ($pipelineNames as $pipelineName) {
+            $this->executePipeline($pipelineName, $pipelines[$pipelineName], $resource, $pipelines);
+        }
+    }
+
+    /**
+     * Execute a single pipeline
+     *
+     * @param string $pipelineName
+     * @param array $pipelineConfig
+     * @param Resource $resource
+     * @param array $allPipelines
+     * @return void
+     */
+    protected function executePipeline(string $pipelineName, array $pipelineConfig, Resource $resource, array $allPipelines): void
+    {
         // Check if this is a scoped pipeline (meta-pipeline)
         if ($this->isScopedPipeline($pipelineConfig)) {
             // Execute scoped pipeline
             $context = new PipelineContext(true);
-            $runner = new ScopedPipelineRunner($resource, $pipelineConfig, $pipelines, $context);
+            $runner = new ScopedPipelineRunner($resource, $pipelineConfig, $allPipelines, $context);
             $runner->setLogger($this);
             $runner->execute();
             return;
