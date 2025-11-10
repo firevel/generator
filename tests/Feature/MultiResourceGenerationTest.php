@@ -13,7 +13,7 @@ class MultiResourceGenerationTest extends TestCase
     use WithWorkbench;
 
     /** @test */
-    public function test_app_pipeline_generates_multiple_resources()
+    public function test_appengine_app_pipeline_generates_multiple_resources()
     {
         $resourceData = [
             'service' => [
@@ -40,7 +40,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $pipelines = config('generator.pipelines');
 
-        $appPipeline = $pipelines['app'];
+        $appPipeline = $pipelines['appengine-app'];
         $context = new PipelineContext(true);
 
         $runner = new ScopedPipelineRunner($resource, $appPipeline, $pipelines, $context);
