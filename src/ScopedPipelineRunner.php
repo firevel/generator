@@ -37,6 +37,9 @@ class ScopedPipelineRunner
      */
     public function execute()
     {
+        // Store the full input resource in context for access from generators
+        $this->context->set('input', $this->resource);
+
         foreach ($this->scopedSteps as $step) {
             $this->executeStep($step);
         }

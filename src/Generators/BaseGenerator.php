@@ -42,6 +42,16 @@ abstract class BaseGenerator
         return $this->context;
     }
 
+    /**
+     * Get the full input resource (before any scoping)
+     *
+     * @return Resource|null
+     */
+    public function input()
+    {
+        return $this->context->get('input');
+    }
+
     public function render($stub, $attributes)
     {
         return view('firevel-generator::' . $stub, $attributes)->render();

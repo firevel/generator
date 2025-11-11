@@ -165,6 +165,55 @@ class MultiResourceGenerationTest extends TestCase
         $this->assertFalse($context->has('routes'));
     }
 
+    /** @test */
+    public function test_generators_can_access_full_input_via_context()
+    {
+        $resourceData = [
+            'service' => [
+                'name' => 'blog-api',
+                'runtime' => 'php83',
+            ],
+            'resources' => [
+                [
+                    'name' => 'post',
+                    'model' => [
+                        'fillable' => ['title'],
+                    ],
+                ],
+            ],
+        ];
+
+        $resource = new Resource($resourceData);
+
+        $pipelines = config('generator.pipelines');
+
+        $scopedSteps = [
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'api-resource',
+            ],
+        ];
+
+        $context = new PipelineContext(true);
+        $runner = new ScopedPipelineRunner($resource, $scopedSteps, $pipelines, $context);
+
+        $logger = new class {
+            public function info($message) {}
+            public function error($message) {}
+            public function warn($message) {}
+        };
+
+        $runner->setLogger($logger);
+        $runner->execute();
+
+        // Verify the full input was stored in context
+        $this->assertTrue($context->has('input'));
+        $fullInput = $context->get('input');
+        $this->assertInstanceOf(Resource::class, $fullInput);
+        $this->assertEquals('blog-api', $fullInput->get('service.name'));
+        $this->assertEquals('php83', $fullInput->get('service.runtime'));
+    }
+
     protected function getPackageProviders($app)
     {
         return [
