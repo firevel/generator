@@ -131,22 +131,24 @@ class FirevelGeneratorCommandTest extends TestCase
             'pipeline' => 'routes',
             '--json' => 'non-existent-file.json',
         ])
-        ->expectsOutput('JSON file \'non-existent-file.json\' not found.')
+        ->expectsOutput('JSON file \'non-existent-file.json\' not found for pipeline \'routes\'.')
         ->assertExitCode(0);
     }
 
     /** @test */
-    public function test_command_validates_all_json_files_before_execution()
+    public function test_command_validates_json_files_lazily_per_pipeline()
     {
         $jsonFile = tempnam(sys_get_temp_dir(), 'test_resource_') . '.json';
         file_put_contents($jsonFile, json_encode(['name' => 'Test']));
 
         try {
+            // Second pipeline will fail because non-existent.json doesn't exist
+            // But first pipeline will execute successfully before validation fails
             $this->artisan('firevel:generate', [
                 'pipeline' => 'routes,routes',
                 '--json' => "{$jsonFile},non-existent.json",
             ])
-            ->expectsOutput('JSON file \'non-existent.json\' not found.')
+            ->expectsOutput('JSON file \'non-existent.json\' not found for pipeline \'routes\'.')
             ->assertExitCode(0);
         } finally {
             if (file_exists($jsonFile)) {

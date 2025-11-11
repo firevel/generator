@@ -53,15 +53,6 @@ class Generate extends Command
             $jsonFiles = array_map('trim', explode(',', $this->option('json')));
         }
 
-        // Validate local JSON files exist before executing (skip URLs)
-        foreach ($jsonFiles as $jsonFile) {
-            $isUrl = filter_var($jsonFile, FILTER_VALIDATE_URL) !== false;
-            if (!$isUrl && !file_exists($jsonFile)) {
-                $this->error("JSON file '{$jsonFile}' not found.");
-                return;
-            }
-        }
-
         // Execute each pipeline in sequence with its corresponding JSON
         foreach ($pipelineNames as $index => $pipelineName) {
             // Determine which JSON file to use for this pipeline
@@ -75,6 +66,13 @@ class Generate extends Command
             // Load attributes from JSON file
             $attributes = [];
             if ($jsonFile) {
+                // Validate local JSON file exists right before loading (skip URLs)
+                $isUrl = filter_var($jsonFile, FILTER_VALIDATE_URL) !== false;
+                if (!$isUrl && !file_exists($jsonFile)) {
+                    $this->error("JSON file '{$jsonFile}' not found for pipeline '{$pipelineName}'.");
+                    return;
+                }
+
                 $attributes = json_decode(file_get_contents($jsonFile), true, 512, JSON_THROW_ON_ERROR);
             }
 
