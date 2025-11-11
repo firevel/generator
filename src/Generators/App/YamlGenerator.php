@@ -33,6 +33,11 @@ class YamlGenerator extends BaseGenerator
             );
         }
 
+        // Set default runtime to php84 if not provided
+        if (!$resource->has('runtime')) {
+            $resource->runtime = 'php84';
+        }
+
         $file = $this->render(
             'app-yaml',
             [
