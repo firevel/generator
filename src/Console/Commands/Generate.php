@@ -53,9 +53,10 @@ class Generate extends Command
             $jsonFiles = array_map('trim', explode(',', $this->option('json')));
         }
 
-        // Validate all JSON files exist before executing
+        // Validate local JSON files exist before executing (skip URLs)
         foreach ($jsonFiles as $jsonFile) {
-            if (!file_exists($jsonFile)) {
+            $isUrl = filter_var($jsonFile, FILTER_VALIDATE_URL) !== false;
+            if (!$isUrl && !file_exists($jsonFile)) {
                 $this->error("JSON file '{$jsonFile}' not found.");
                 return;
             }
