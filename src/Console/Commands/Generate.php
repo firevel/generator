@@ -16,14 +16,14 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'firevel:generate {pipeline? : Pipeline name or comma-separated list of pipelines} {--only=} {--json=}';
+    protected $signature = 'firevel:generate {pipeline? : Pipeline name or comma-separated list of pipelines} {--only=} {--json= : JSON file or comma-separated list of JSON files (one per pipeline)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate a new resource. Supports multiple pipelines separated by commas.';
+    protected $description = 'Generate a new resource. Supports multiple pipelines and JSON files separated by commas.';
 
     /**
      * Execute the console command.
@@ -32,7 +32,6 @@ class Generate extends Command
      */
     public function handle()
     {
-        $attributes = [];
         $pipelineArg = $this->argument('pipeline');
 
         // Support multiple pipelines separated by commas
@@ -48,14 +47,38 @@ class Generate extends Command
             }
         }
 
+        // Parse JSON files (support multiple files separated by commas)
+        $jsonFiles = [];
         if (!empty($this->option('json'))) {
-            $attributes = json_decode(file_get_contents($this->option('json')), true, 512, JSON_THROW_ON_ERROR);
+            $jsonFiles = array_map('trim', explode(',', $this->option('json')));
         }
 
-        $resource = new Resource($attributes);
+        // Validate all JSON files exist before executing
+        foreach ($jsonFiles as $jsonFile) {
+            if (!file_exists($jsonFile)) {
+                $this->error("JSON file '{$jsonFile}' not found.");
+                return;
+            }
+        }
 
-        // Execute each pipeline in sequence
-        foreach ($pipelineNames as $pipelineName) {
+        // Execute each pipeline in sequence with its corresponding JSON
+        foreach ($pipelineNames as $index => $pipelineName) {
+            // Determine which JSON file to use for this pipeline
+            // If there's a corresponding JSON file at the same index, use it
+            // Otherwise, use the last JSON file (or empty if no JSON files)
+            $jsonFile = null;
+            if (!empty($jsonFiles)) {
+                $jsonFile = $jsonFiles[$index] ?? end($jsonFiles);
+            }
+
+            // Load attributes from JSON file
+            $attributes = [];
+            if ($jsonFile) {
+                $attributes = json_decode(file_get_contents($jsonFile), true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            $resource = new Resource($attributes);
+
             $this->executePipeline($pipelineName, $pipelines[$pipelineName], $resource, $pipelines);
         }
     }
