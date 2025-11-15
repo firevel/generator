@@ -48,10 +48,24 @@ class ScopedPipelineRunner
     /**
      * Execute a single scoped pipeline step
      *
-     * @param array $step
+     * @param array|string $step
      */
-    protected function executeStep(array $step)
+    protected function executeStep($step)
     {
+        // If step is a string, it's a generator class - execute it directly
+        if (is_string($step)) {
+            $generator = new $step($this->resource, $this->context);
+            $generator->setLogger($this->logger());
+            $generator->handle();
+            return;
+        }
+
+        // Otherwise, it's a scoped step
+        if (!is_array($step)) {
+            $this->logger()->error("Invalid step configuration");
+            return;
+        }
+
         $scope = $step['scope'] ?? '';
         $pipelineName = $step['pipeline'] ?? null;
 

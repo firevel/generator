@@ -33,6 +33,7 @@ return [
                 'scope' => 'resources',
                 'pipeline' => 'routes',
             ],
+            'composer-require' => \Firevel\Generator\Generators\App\ComposerRequireGenerator::class,
         ],
    ],
 ];
