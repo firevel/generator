@@ -12,10 +12,18 @@ class ComposerRequireGenerator extends BaseGenerator
 
         // Get the full input to access top-level "require" field
         $input = $this->input();
-        $requires = $input ? $input->get('require', []) : $resource->get('require', []);
+
+        // Check if require field exists, if not skip silently
+        if ($input && $input->has('require')) {
+            $requires = $input->get('require', []);
+        } elseif ($resource->has('require')) {
+            $requires = $resource->get('require', []);
+        } else {
+            // No require field - skip silently since it's optional
+            return;
+        }
 
         if (empty($requires)) {
-            $this->logger()->info("No composer requirements specified in 'require' field");
             return;
         }
 
