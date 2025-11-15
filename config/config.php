@@ -34,6 +34,7 @@ return [
                 'pipeline' => 'routes',
             ],
             'composer-require' => \Firevel\Generator\Generators\App\ComposerRequireGenerator::class,
+            'env' => \Firevel\Generator\Generators\App\EnvGenerator::class,
         ],
    ],
 ];
