@@ -88,6 +88,9 @@ class ComposerRequireGenerator extends BaseGenerator
             $this->logger()->info("{$action} {$package}: {$version}");
         }
 
+        // Sort require section alphabetically
+        ksort($composer['require']);
+
         // Save composer.json with pretty print
         $updatedContent = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
         file_put_contents($composerPath, $updatedContent);
