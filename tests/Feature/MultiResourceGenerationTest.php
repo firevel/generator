@@ -13,6 +13,92 @@ class MultiResourceGenerationTest extends TestCase
     use WithWorkbench;
 
     /** @test */
+    public function test_generic_app_pipeline_generates_multiple_resources()
+    {
+        $resourceData = [
+            'resources' => [
+                [
+                    'name' => 'post',
+                    'model' => [
+                        'fillable' => ['title', 'content'],
+                    ],
+                ],
+                [
+                    'name' => 'comment',
+                    'model' => [
+                        'fillable' => ['body'],
+                    ],
+                ],
+            ],
+        ];
+
+        $resource = new Resource($resourceData);
+
+        $pipelines = config('generator.pipelines');
+
+        $appPipeline = $pipelines['generic-app'];
+        $context = new PipelineContext(true);
+
+        $runner = new ScopedPipelineRunner($resource, $appPipeline, $pipelines, $context);
+
+        $logger = new class {
+            public function info($message) {}
+            public function error($message) {}
+            public function warn($message) {}
+        };
+
+        $runner->setLogger($logger);
+        $runner->execute();
+
+        // Verify routes were collected
+        $this->assertTrue($context->has('routes'));
+        $routes = $context->get('routes');
+        $this->assertCount(2, $routes);
+        $this->assertEquals('posts', $routes[0]['name']);
+        $this->assertEquals('comments', $routes[1]['name']);
+    }
+
+    /** @test */
+    public function test_generic_app_pipeline_does_not_require_service_config()
+    {
+        // generic-app should work without service configuration (unlike appengine-app)
+        $resourceData = [
+            'resources' => [
+                [
+                    'name' => 'article',
+                    'model' => [
+                        'fillable' => ['title'],
+                    ],
+                ],
+            ],
+        ];
+
+        $resource = new Resource($resourceData);
+
+        $pipelines = config('generator.pipelines');
+
+        $appPipeline = $pipelines['generic-app'];
+        $context = new PipelineContext(true);
+
+        $runner = new ScopedPipelineRunner($resource, $appPipeline, $pipelines, $context);
+
+        $logger = new class {
+            public function info($message) {}
+            public function error($message) {}
+            public function warn($message) {}
+        };
+
+        $runner->setLogger($logger);
+        $runner->execute();
+
+        // Verify the pipeline completed successfully
+        $this->assertTrue($context->has('routes'));
+        $routes = $context->get('routes');
+        $this->assertCount(1, $routes);
+        $this->assertEquals('articles', $routes[0]['name']);
+    }
+
+    /** @test */
     public function test_appengine_app_pipeline_generates_multiple_resources()
     {
         $resourceData = [
