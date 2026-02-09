@@ -99,6 +99,11 @@ class Generate extends Command
             $context = new PipelineContext(true);
             $runner = new ScopedPipelineRunner($resource, $pipelineConfig, $allPipelines, $context);
             $runner->setLogger($this);
+
+            if (!empty($this->option('only'))) {
+                $runner->setOnly(explode(',', $this->option('only')));
+            }
+
             $runner->execute();
             return;
         }

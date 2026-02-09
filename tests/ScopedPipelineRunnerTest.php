@@ -148,6 +148,104 @@ class ScopedPipelineRunnerTest extends TestCase
     }
 
     /** @test */
+    public function test_only_filters_iterated_scope_items_by_name()
+    {
+        $resource = new Resource([
+            'resources' => [
+                ['name' => 'post'],
+                ['name' => 'comment'],
+                ['name' => 'user'],
+            ],
+        ]);
+
+        $scopedSteps = [
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'test-pipeline',
+            ],
+        ];
+
+        $pipelines = [
+            'test-pipeline' => [
+                'test-generator' => MockGenerator::class,
+            ],
+        ];
+
+        $context = new PipelineContext(true);
+        $logger = Mockery::mock('stdClass');
+
+        // Should only see processing messages for 'post' and 'user', not 'comment'
+        $logger->shouldReceive('info')
+            ->with(Mockery::pattern('/Processing resources\[0\]/'))
+            ->once();
+        $logger->shouldReceive('info')
+            ->with(Mockery::pattern('/Processing resources\[2\]/'))
+            ->once();
+        $logger->shouldReceive('info')
+            ->with(Mockery::pattern('/Processing resources\[1\]/'))
+            ->never();
+        $logger->shouldReceive('info')
+            ->with(Mockery::on(function ($msg) {
+                return !preg_match('/Processing resources/', $msg);
+            }))
+            ->andReturn(null);
+
+        $runner = new ScopedPipelineRunner($resource, $scopedSteps, $pipelines, $context);
+        $runner->setLogger($logger);
+        $runner->setOnly(['Post', 'user']);
+        $runner->execute();
+
+        $this->assertTrue(true);
+    }
+
+    /** @test */
+    public function test_only_with_null_does_not_filter()
+    {
+        $resource = new Resource([
+            'resources' => [
+                ['name' => 'post'],
+                ['name' => 'comment'],
+            ],
+        ]);
+
+        $scopedSteps = [
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'test-pipeline',
+            ],
+        ];
+
+        $pipelines = [
+            'test-pipeline' => [
+                'test-generator' => MockGenerator::class,
+            ],
+        ];
+
+        $context = new PipelineContext(true);
+        $logger = Mockery::mock('stdClass');
+
+        // Both should be processed
+        $logger->shouldReceive('info')
+            ->with(Mockery::pattern('/Processing resources\[0\]/'))
+            ->once();
+        $logger->shouldReceive('info')
+            ->with(Mockery::pattern('/Processing resources\[1\]/'))
+            ->once();
+        $logger->shouldReceive('info')
+            ->with(Mockery::on(function ($msg) {
+                return !preg_match('/Processing resources/', $msg);
+            }))
+            ->andReturn(null);
+
+        $runner = new ScopedPipelineRunner($resource, $scopedSteps, $pipelines, $context);
+        $runner->setLogger($logger);
+        $runner->setOnly(null);
+        $runner->execute();
+
+        $this->assertTrue(true);
+    }
+
+    /** @test */
     public function test_executes_multiple_scoped_steps_in_sequence()
     {
         $resource = new Resource([

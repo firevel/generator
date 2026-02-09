@@ -13,6 +13,7 @@ class ScopedPipelineRunner
     protected $allPipelines;
     protected $logger;
     protected $context;
+    protected $only;
 
     public function __construct(Resource $resource, array $scopedSteps, array $allPipelines, PipelineContext $context = null)
     {
@@ -30,6 +31,11 @@ class ScopedPipelineRunner
     public function logger()
     {
         return $this->logger;
+    }
+
+    public function setOnly(?array $only)
+    {
+        $this->only = $only;
     }
 
     /**
@@ -135,6 +141,13 @@ class ScopedPipelineRunner
 
         // Execute pipeline for each item
         foreach ($collection as $index => $item) {
+            // Skip items not matching --only filter (case-insensitive)
+            if (!empty($this->only) && is_array($item) && isset($item['name'])) {
+                if (!in_array(strtolower($item['name']), array_map('strtolower', $this->only))) {
+                    continue;
+                }
+            }
+
             $this->logger()->info("");
             $this->logger()->info("=== Processing {$collectionPath}[{$index}] ===");
             $this->logger()->info("");

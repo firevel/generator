@@ -196,6 +196,127 @@ class MultiResourceGenerationTest extends TestCase
     }
 
     /** @test */
+    public function test_only_filters_resources_in_scoped_pipeline()
+    {
+        $resourceData = [
+            'resources' => [
+                [
+                    'name' => 'post',
+                    'model' => [
+                        'fillable' => ['title', 'content'],
+                    ],
+                ],
+                [
+                    'name' => 'comment',
+                    'model' => [
+                        'fillable' => ['body'],
+                    ],
+                ],
+                [
+                    'name' => 'tag',
+                    'model' => [
+                        'fillable' => ['label'],
+                    ],
+                ],
+            ],
+        ];
+
+        $resource = new Resource($resourceData);
+
+        $pipelines = config('generator.pipelines');
+
+        $scopedSteps = [
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'api-resource',
+            ],
+            [
+                'scope' => 'resources',
+                'pipeline' => 'routes',
+            ],
+        ];
+
+        $context = new PipelineContext(true);
+        $runner = new ScopedPipelineRunner($resource, $scopedSteps, $pipelines, $context);
+
+        $logger = new class {
+            public function info($message) {}
+            public function error($message) {}
+            public function warn($message) {}
+        };
+
+        $runner->setLogger($logger);
+        $runner->setOnly(['Post', 'Tag']);
+        $runner->execute();
+
+        // Only post and tag should have generated routes
+        $routes = $context->get('routes');
+        $this->assertCount(2, $routes);
+        $this->assertEquals('posts', $routes[0]['name']);
+        $this->assertEquals('tags', $routes[1]['name']);
+    }
+
+    /** @test */
+    public function test_only_with_single_resource_in_scoped_pipeline()
+    {
+        $resourceData = [
+            'resources' => [
+                [
+                    'name' => 'post',
+                    'model' => [
+                        'fillable' => ['title'],
+                    ],
+                ],
+                [
+                    'name' => 'comment',
+                    'model' => [
+                        'fillable' => ['body'],
+                    ],
+                ],
+                [
+                    'name' => 'tag',
+                    'model' => [
+                        'fillable' => ['label'],
+                    ],
+                ],
+            ],
+        ];
+
+        $resource = new Resource($resourceData);
+
+        $pipelines = config('generator.pipelines');
+
+        $scopedSteps = [
+            [
+                'scope' => 'resources.*',
+                'pipeline' => 'api-resource',
+            ],
+            [
+                'scope' => 'resources',
+                'pipeline' => 'routes',
+            ],
+        ];
+
+        $context = new PipelineContext(true);
+        $runner = new ScopedPipelineRunner($resource, $scopedSteps, $pipelines, $context);
+
+        $logger = new class {
+            public function info($message) {}
+            public function error($message) {}
+            public function warn($message) {}
+        };
+
+        $runner->setLogger($logger);
+        $runner->setOnly(['Comment']);
+        $runner->execute();
+
+        // Only comment should have generated a route
+        $routes = $context->get('routes');
+        $this->assertCount(1, $routes);
+        $this->assertEquals('comments', $routes[0]['name']);
+    }
+
+    /** @test */
     public function test_scoped_pipeline_resolves_nested_data()
     {
         $resourceData = [
