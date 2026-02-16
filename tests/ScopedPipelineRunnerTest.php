@@ -195,7 +195,9 @@ class ScopedPipelineRunnerTest extends TestCase
         $runner->setOnly(['Post', 'user']);
         $runner->execute();
 
-        $this->assertTrue(true);
+        // Verify only is accessible from context
+        $this->assertTrue($context->has('only'));
+        $this->assertEquals(['Post', 'user'], $context->get('only'));
     }
 
     /** @test */
@@ -242,7 +244,8 @@ class ScopedPipelineRunnerTest extends TestCase
         $runner->setOnly(null);
         $runner->execute();
 
-        $this->assertTrue(true);
+        // Verify only is not set in context when null
+        $this->assertFalse($context->has('only'));
     }
 
     /** @test */

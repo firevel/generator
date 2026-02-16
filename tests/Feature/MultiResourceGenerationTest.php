@@ -50,6 +50,9 @@ class MultiResourceGenerationTest extends TestCase
         $runner->setLogger($logger);
         $runner->execute();
 
+        // Verify only is not in context when not set
+        $this->assertFalse($context->has('only'));
+
         // Verify routes were collected
         $this->assertTrue($context->has('routes'));
         $routes = $context->get('routes');
@@ -248,6 +251,10 @@ class MultiResourceGenerationTest extends TestCase
         $runner->setLogger($logger);
         $runner->setOnly(['Post', 'Tag']);
         $runner->execute();
+
+        // Verify only is accessible from context
+        $this->assertTrue($context->has('only'));
+        $this->assertEquals(['Post', 'Tag'], $context->get('only'));
 
         // Only post and tag should have generated routes
         $routes = $context->get('routes');
