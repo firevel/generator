@@ -248,6 +248,70 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
     }
 
     /** @test */
+    public function test_incrementing_default_true_is_omitted()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'incrementing' => true,
+                ],
+            ],
+        ]);
+        $source = (new ModelGenerator($resource))->generateSource();
+
+        $this->assertStringNotContainsString('$incrementing', $source);
+    }
+
+    /** @test */
+    public function test_incrementing_false_is_emitted()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'incrementing' => false,
+                ],
+            ],
+        ]);
+        $source = (new ModelGenerator($resource))->generateSource();
+
+        $this->assertStringContainsString('$incrementing = false;', $source);
+    }
+
+    /** @test */
+    public function test_timestamps_default_true_is_omitted()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'timestamps' => true,
+                ],
+            ],
+        ]);
+        $source = (new ModelGenerator($resource))->generateSource();
+
+        $this->assertStringNotContainsString('$timestamps', $source);
+    }
+
+    /** @test */
+    public function test_timestamps_false_is_emitted()
+    {
+        $resource = new Resource([
+            'name' => 'User',
+            'model' => [
+                'properties' => [
+                    'timestamps' => false,
+                ],
+            ],
+        ]);
+        $source = (new ModelGenerator($resource))->generateSource();
+
+        $this->assertStringContainsString('$timestamps = false;', $source);
+    }
+
+    /** @test */
     public function test_attribute_defaults_preserve_scalar_types()
     {
         $resource = new Resource([

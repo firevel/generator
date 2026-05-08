@@ -50,7 +50,9 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     $propertyName = is_array($value) ? $value['name'] : $name;
     $propertyValue = is_array($value) ? $value['value'] : $value;
     $visibility = is_array($value) && isset($value['visibility']) ? $value['visibility'] : 'protected';
+    $eloquentDefaults = ['incrementing' => true, 'timestamps' => true];
 @endphp
+@continue(array_key_exists($propertyName, $eloquentDefaults) && $eloquentDefaults[$propertyName] === $propertyValue)
 @if (is_string($propertyValue))
     {{$visibility}} {{'$'}}{{$propertyName}} = "{{$propertyValue}}";
 @elseif (is_bool($propertyValue))
