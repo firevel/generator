@@ -121,7 +121,7 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     protected $attributes = [
 @if ($resource->has('model.attributes'))
 @foreach ($resource->model['attributes'] as $key => $value)
-        '{{$key}}' => '{{$value}}',
+        '{{$key}}' => {!! var_export($value, true) !!},
 @endforeach
 @endif
     ];

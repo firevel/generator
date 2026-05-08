@@ -248,6 +248,32 @@ class ModelGeneratorTest extends \Orchestra\Testbench\TestCase
     }
 
     /** @test */
+    public function test_attribute_defaults_preserve_scalar_types()
+    {
+        $resource = new Resource([
+            'name' => 'Post',
+            'model' => [
+                'attributes' => [
+                    'is_published' => false,
+                    'is_featured' => true,
+                    'view_count' => 0,
+                    'rating' => 4.5,
+                    'status' => 'draft',
+                    'archived_at' => null,
+                ],
+            ],
+        ]);
+        $source = (new ModelGenerator($resource))->generateSource();
+
+        $this->assertStringContainsString("'is_published' => false,", $source);
+        $this->assertStringContainsString("'is_featured' => true,", $source);
+        $this->assertStringContainsString("'view_count' => 0,", $source);
+        $this->assertStringContainsString("'rating' => 4.5,", $source);
+        $this->assertStringContainsString("'status' => 'draft',", $source);
+        $this->assertStringContainsString("'archived_at' => NULL,", $source);
+    }
+
+    /** @test */
     public function test_searchable_array()
     {
         $resource = new Resource([
