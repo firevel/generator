@@ -9,6 +9,12 @@ class MigrationsGenerator extends BaseGenerator
 {
     public function handle()
     {
+        $this->generateResourceMigration();
+        $this->generatePivotMigrations();
+    }
+
+    protected function generateResourceMigration()
+    {
         $resource = $this->resource();
         $tableName = $resource->name()->plural()->snake();
         $migrationPattern = "*_create_{$tableName}_table.php";
@@ -67,6 +73,62 @@ class MigrationsGenerator extends BaseGenerator
             $this->logger()->info("# Migration created: {$name}");
             $this->logger()->info('- [Required] Set migration');
             $this->logger()->info('  - Available column types https://laravel.com/docs/migrations#available-column-types)');
+        }
+    }
+
+    protected function generatePivotMigrations()
+    {
+        $resource = $this->resource();
+
+        if (!$resource->has('migrations.pivot')) {
+            return;
+        }
+
+        $pivots = $resource->get('migrations.pivot');
+        if (!is_array($pivots) || empty($pivots)) {
+            return;
+        }
+
+        $migrationsPath = database_path('migrations');
+        $emitted = $this->context->get('emitted_pivots', []);
+
+        foreach ($pivots as $pivot) {
+            if (empty($pivot['table']) || empty($pivot['fields'])) {
+                continue;
+            }
+
+            $table = $pivot['table'];
+
+            // Within-run dedupe (shared across iterated resources via PipelineContext).
+            if (in_array($table, $emitted, true)) {
+                continue;
+            }
+
+            // Cross-run dedupe: skip if a pivot migration for this table already exists.
+            $existing = glob($migrationsPath . '/*_create_' . $table . '_pivot_table.php');
+            if (!empty($existing)) {
+                $this->logger()->info("Pivot migration for '{$table}' already exists, skipping");
+                $emitted[] = $table;
+                $this->context->set('emitted_pivots', $emitted);
+                continue;
+            }
+
+            $name = date('Y_m_d_His') . "_create_{$table}_pivot_table";
+            $path = $migrationsPath . '/' . "{$name}.php";
+
+            $source = $this->render(
+                'api-resource/pivot-migration',
+                [
+                    'pivot' => $pivot,
+                ]
+            );
+
+            $this->createFile($path, $source);
+
+            $emitted[] = $table;
+            $this->context->set('emitted_pivots', $emitted);
+
+            $this->logger()->info("# Pivot migration created: {$name}");
         }
     }
 
