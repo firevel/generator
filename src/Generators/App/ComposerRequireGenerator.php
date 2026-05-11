@@ -8,20 +8,7 @@ class ComposerRequireGenerator extends BaseGenerator
 {
     public function handle()
     {
-        $resource = $this->resource();
-
-        // Get the full input to access top-level "require" field
-        $input = $this->input();
-
-        // Check if require field exists, if not skip silently
-        if ($input && $input->has('require')) {
-            $requires = $input->get('require', []);
-        } elseif ($resource->has('require')) {
-            $requires = $resource->get('require', []);
-        } else {
-            // No require field - skip silently since it's optional
-            return;
-        }
+        $requires = $this->collectRequires();
 
         if (empty($requires)) {
             return;
@@ -105,5 +92,114 @@ class ComposerRequireGenerator extends BaseGenerator
 
         $this->logger()->info("composer.json updated successfully");
         $this->logger()->info("Run 'composer update' to install the new packages");
+    }
+
+    /**
+     * Collect required packages from all three sources (app-level, per-resource,
+     * generator-pushed) and resolve each to a single version using precedence
+     * and '*' deferral rules.
+     */
+    protected function collectRequires(): array
+    {
+        $bySource = $this->collectFromSources();
+
+        if (empty($bySource)) {
+            return [];
+        }
+
+        $resolved = [];
+        foreach ($bySource as $package => $sources) {
+            $resolved[$package] = $this->resolveVersion($package, $sources);
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * @return array<string, array<string, string>>  package => source => version
+     */
+    protected function collectFromSources(): array
+    {
+        $bySource = [];
+
+        // Source 1 — app-level requires from input.require (or resource.require as fallback
+        // for single-resource invocations without an input wrapper).
+        $input = $this->input();
+        $resource = $this->resource();
+
+        $appRequires = [];
+        if ($input && $input->has('require')) {
+            $appRequires = $input->get('require', []);
+        } elseif ($resource->has('require')) {
+            $appRequires = $resource->get('require', []);
+        }
+        foreach ((array) $appRequires as $package => $version) {
+            $bySource[$package]['app'] = (string) $version;
+        }
+
+        // Source 2 — per-resource requires from input.resources[].require.
+        $resources = [];
+        if ($input && $input->has('resources')) {
+            $resources = $input->get('resources', []);
+        }
+        foreach ((array) $resources as $r) {
+            if (!is_array($r) || empty($r['require']) || !is_array($r['require'])) {
+                continue;
+            }
+
+            foreach ($r['require'] as $package => $version) {
+                $version = (string) $version;
+                $existing = $bySource[$package]['resource'] ?? null;
+
+                if ($existing === null) {
+                    $bySource[$package]['resource'] = $version;
+                    continue;
+                }
+
+                if ($existing === $version) {
+                    continue;
+                }
+
+                // Prefer a concrete version over '*'.
+                if ($existing === '*') {
+                    $bySource[$package]['resource'] = $version;
+                    continue;
+                }
+                if ($version === '*') {
+                    continue;
+                }
+
+                // Two different concrete versions across resources — keep the first.
+                $this->logger()->warn("Conflicting resource-level requires for {$package}: '{$existing}' vs '{$version}' — keeping '{$existing}'");
+            }
+        }
+
+        // Source 3 — generator-pushed requires via $this->requirePackage(...).
+        $generatorRequires = $this->context->get('composer_requires', []);
+        if (is_array($generatorRequires)) {
+            foreach ($generatorRequires as $package => $version) {
+                $bySource[$package]['generator'] = (string) $version;
+            }
+        }
+
+        return $bySource;
+    }
+
+    /**
+     * Resolve the version for a package using the precedence app > resource > generator.
+     * A '*' value at any source is treated as "defer to another source." If every source
+     * is '*' (or only '*' was declared), '*' is returned and a warning is logged.
+     */
+    protected function resolveVersion(string $package, array $bySource): string
+    {
+        foreach (['app', 'resource', 'generator'] as $source) {
+            $version = $bySource[$source] ?? null;
+            if ($version !== null && $version !== '*') {
+                return $version;
+            }
+        }
+
+        $this->logger()->warn("No concrete version found for {$package}; falling back to '*'. Pin a version in `require` to silence this.");
+        return '*';
     }
 }

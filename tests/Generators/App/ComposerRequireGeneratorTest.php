@@ -246,6 +246,225 @@ class ComposerRequireGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertTrue($hasMessage, 'Should log that package already exists with same version');
     }
 
+    /** @test */
+    public function test_collects_per_resource_requires()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-sluggable' => '^3.0']],
+                ['name' => 'Tag',  'require' => ['league/csv' => '^9.0']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^3.0', $composer['require']['spatie/laravel-sluggable']);
+        $this->assertSame('^9.0', $composer['require']['league/csv']);
+    }
+
+    /** @test */
+    public function test_collects_generator_pushed_requires_from_context()
+    {
+        $input = new Resource([]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['laravel/scout' => '^10.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^10.0', $composer['require']['laravel/scout']);
+    }
+
+    /** @test */
+    public function test_app_level_wins_over_resource_and_generator()
+    {
+        $input = new Resource([
+            'require' => ['acme/widget' => '^9.0'],
+            'resources' => [
+                ['name' => 'Post', 'require' => ['acme/widget' => '^8.0']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['acme/widget' => '^7.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^9.0', $composer['require']['acme/widget']);
+    }
+
+    /** @test */
+    public function test_resource_wins_over_generator()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['acme/widget' => '^8.0']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['acme/widget' => '^7.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^8.0', $composer['require']['acme/widget']);
+    }
+
+    /** @test */
+    public function test_wildcard_resource_defers_to_generator()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-sluggable' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['spatie/laravel-sluggable' => '^3.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^3.0', $composer['require']['spatie/laravel-sluggable']);
+    }
+
+    /** @test */
+    public function test_wildcard_app_defers_to_generator()
+    {
+        $input = new Resource([
+            'require' => ['laravel/scout' => '*'],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['laravel/scout' => '^10.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^10.0', $composer['require']['laravel/scout']);
+    }
+
+    /** @test */
+    public function test_concrete_app_beats_wildcard_resource_even_when_generator_has_concrete()
+    {
+        $input = new Resource([
+            'require' => ['acme/widget' => '^9.0'],
+            'resources' => [
+                ['name' => 'Post', 'require' => ['acme/widget' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['acme/widget' => '^10.0']);
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^9.0', $composer['require']['acme/widget']);
+    }
+
+    /** @test */
+    public function test_all_wildcards_falls_back_to_star_with_warning()
+    {
+        $input = new Resource([
+            'require' => ['acme/widget' => '*'],
+            'resources' => [
+                ['name' => 'Post', 'require' => ['acme/widget' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+        $context->set('composer_requires', ['acme/widget' => '*']);
+
+        $logger = new class {
+            public array $messages = [];
+            public function info($m) { $this->messages[] = ['info', $m]; }
+            public function error($m) { $this->messages[] = ['error', $m]; }
+            public function warn($m) { $this->messages[] = ['warn', $m]; }
+            public function confirm($m, $d = true) { return true; }
+        };
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($logger);
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('*', $composer['require']['acme/widget']);
+
+        $warnings = array_filter($logger->messages, fn($e) => $e[0] === 'warn' && str_contains($e[1], "No concrete version found for acme/widget"));
+        $this->assertNotEmpty($warnings, 'Expected a fallback warning when no concrete version is declared');
+    }
+
+    /** @test */
+    public function test_conflicting_resource_requires_keeps_first_and_warns()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['acme/widget' => '^8.0']],
+                ['name' => 'Tag',  'require' => ['acme/widget' => '^9.0']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $logger = new class {
+            public array $messages = [];
+            public function info($m) { $this->messages[] = ['info', $m]; }
+            public function error($m) { $this->messages[] = ['error', $m]; }
+            public function warn($m) { $this->messages[] = ['warn', $m]; }
+            public function confirm($m, $d = true) { return true; }
+        };
+
+        $generator = new ComposerRequireGenerator(new Resource([]), $context);
+        $generator->setLogger($logger);
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^8.0', $composer['require']['acme/widget']);
+
+        $warnings = array_filter($logger->messages, fn($e) => $e[0] === 'warn' && str_contains($e[1], 'Conflicting resource-level requires'));
+        $this->assertNotEmpty($warnings);
+    }
+
+    protected function makeAcceptingLogger()
+    {
+        return new class {
+            public function info($m) {}
+            public function error($m) {}
+            public function warn($m) {}
+            public function confirm($m, $d = true) { return true; }
+        };
+    }
+
     protected function getPackageProviders($app)
     {
         return [

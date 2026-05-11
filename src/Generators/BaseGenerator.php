@@ -57,6 +57,55 @@ abstract class BaseGenerator
         return view('firevel-generator::' . $stub, $attributes)->render();
     }
 
+    /**
+     * Declare that the generated code needs a Composer package.
+     *
+     * The package + version is pushed into the pipeline context under
+     * 'composer_requires'. ComposerRequireGenerator collects these alongside
+     * schema-declared requires and writes them to composer.json at the end of
+     * the app pipeline.
+     *
+     * Use '*' to defer the version to an app-level or per-resource require.
+     */
+    protected function requirePackage(string $name, string $version): void
+    {
+        $requires = $this->context->get('composer_requires', []);
+
+        if (!is_array($requires)) {
+            $requires = [];
+        }
+
+        if (isset($requires[$name])) {
+            $existing = $requires[$name];
+
+            // Same version is a no-op.
+            if ($existing === $version) {
+                return;
+            }
+
+            // Prefer a concrete version over '*'.
+            if ($existing === '*') {
+                $requires[$name] = $version;
+                $this->context->set('composer_requires', $requires);
+                return;
+            }
+
+            // Incoming '*' yields to an already-concrete version.
+            if ($version === '*') {
+                return;
+            }
+
+            // Two different concrete versions — keep the first, warn.
+            if ($this->logger) {
+                $this->logger->warn("Conflicting generator requires for {$name}: '{$existing}' vs '{$version}' — keeping '{$existing}'");
+            }
+            return;
+        }
+
+        $requires[$name] = $version;
+        $this->context->set('composer_requires', $requires);
+    }
+
     protected function createFile($path, $content)
     {
         // Get the directory name from the file path
