@@ -9,6 +9,8 @@ class TransformerGenerator extends BaseGenerator
 {
     public function handle()
     {
+        $this->requirePackage('spatie/laravel-fractal', '^6.0');
+
         $resource = $this->resource();
         $name = $resource->name()->singular()->studly() . 'Transformer';
 
