@@ -455,6 +455,242 @@ class ComposerRequireGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertNotEmpty($warnings);
     }
 
+    /** @test */
+    public function test_star_package_is_installed_when_composer_available_and_user_confirms()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = $this->makeInstallStubbedGenerator(
+            new Resource([]),
+            $context,
+            composerAvailable: true,
+            confirms: true,
+            installedVersions: ['spatie/laravel-fractal' => '^6.0'],
+            installSucceeds: true,
+        );
+
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^6.0', $composer['require']['spatie/laravel-fractal']);
+        $this->assertSame(['spatie/laravel-fractal'], $generator->installed);
+    }
+
+    /** @test */
+    public function test_star_falls_back_when_composer_not_available()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = $this->makeInstallStubbedGenerator(
+            new Resource([]),
+            $context,
+            composerAvailable: false,
+        );
+
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('*', $composer['require']['spatie/laravel-fractal']);
+        $this->assertEmpty($generator->installed);
+    }
+
+    /** @test */
+    public function test_star_falls_back_when_user_declines()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = $this->makeInstallStubbedGenerator(
+            new Resource([]),
+            $context,
+            composerAvailable: true,
+            confirms: false,
+        );
+
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('*', $composer['require']['spatie/laravel-fractal']);
+        $this->assertEmpty($generator->installed);
+    }
+
+    /** @test */
+    public function test_star_falls_back_when_composer_require_fails()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = $this->makeInstallStubbedGenerator(
+            new Resource([]),
+            $context,
+            composerAvailable: true,
+            confirms: true,
+            installSucceeds: false,
+        );
+
+        $logger = new class {
+            public array $messages = [];
+            public function info($m) { $this->messages[] = ['info', $m]; }
+            public function error($m) { $this->messages[] = ['error', $m]; }
+            public function warn($m) { $this->messages[] = ['warn', $m]; }
+            public function confirm($m, $d = true) { return true; }
+        };
+
+        $generator->setLogger($logger);
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('*', $composer['require']['spatie/laravel-fractal']);
+
+        $warnings = array_filter($logger->messages, fn($e) => $e[0] === 'warn' && str_contains($e[1], 'failed'));
+        $this->assertNotEmpty($warnings);
+    }
+
+    /** @test */
+    public function test_install_only_runs_for_star_packages_not_concrete()
+    {
+        $input = new Resource([
+            'require' => ['acme/widget' => '^9.0'],
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        $generator = $this->makeInstallStubbedGenerator(
+            new Resource([]),
+            $context,
+            composerAvailable: true,
+            confirms: true,
+            installedVersions: ['spatie/laravel-fractal' => '^6.0'],
+            installSucceeds: true,
+        );
+
+        $generator->setLogger($this->makeAcceptingLogger());
+        $generator->handle();
+
+        $this->assertSame(['spatie/laravel-fractal'], $generator->installed,
+            'Only the star-resolved package should trigger composer require');
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('^9.0', $composer['require']['acme/widget']);
+        $this->assertSame('^6.0', $composer['require']['spatie/laravel-fractal']);
+    }
+
+    /** @test */
+    public function test_skips_install_when_logger_has_no_confirm_method()
+    {
+        $input = new Resource([
+            'resources' => [
+                ['name' => 'Post', 'require' => ['spatie/laravel-fractal' => '*']],
+            ],
+        ]);
+
+        $context = new PipelineContext(true);
+        $context->set('input', $input);
+
+        // Subclass that stubs ONLY the subprocess-touching methods — leaves confirmInstall()
+        // intact so we actually exercise the real `method_exists($logger, 'confirm')` check.
+        $generator = new class(new Resource([]), $context) extends ComposerRequireGenerator {
+            public array $installed = [];
+            protected function isComposerAvailable(): bool { return true; }
+            protected function runComposerRequire(string $package): void { $this->installed[] = $package; }
+            protected function readInstalledVersion(string $package): ?string { return '^6.0'; }
+        };
+
+        // Logger with no confirm() — simulates non-interactive runs.
+        $generator->setLogger(new class {
+            public function info($m) {}
+            public function error($m) {}
+            public function warn($m) {}
+        });
+        $generator->handle();
+
+        $composer = json_decode(file_get_contents($this->composerPath), true);
+        $this->assertSame('*', $composer['require']['spatie/laravel-fractal']);
+        $this->assertEmpty($generator->installed);
+    }
+
+    protected function makeInstallStubbedGenerator(
+        Resource $resource,
+        PipelineContext $context,
+        bool $composerAvailable = false,
+        bool $confirms = false,
+        array $installedVersions = [],
+        bool $installSucceeds = true,
+    ) {
+        return new class($resource, $context, $composerAvailable, $confirms, $installedVersions, $installSucceeds) extends ComposerRequireGenerator {
+            public array $installed = [];
+            private bool $_available;
+            private bool $_confirms;
+            private array $_installedVersions;
+            private bool $_succeeds;
+
+            public function __construct(Resource $resource, PipelineContext $context, bool $available, bool $confirms, array $installedVersions, bool $succeeds)
+            {
+                parent::__construct($resource, $context);
+                $this->_available = $available;
+                $this->_confirms = $confirms;
+                $this->_installedVersions = $installedVersions;
+                $this->_succeeds = $succeeds;
+            }
+
+            protected function isComposerAvailable(): bool
+            {
+                return $this->_available;
+            }
+
+            protected function confirmInstall(string $package): bool
+            {
+                return $this->_confirms;
+            }
+
+            protected function runComposerRequire(string $package): void
+            {
+                $this->installed[] = $package;
+                if (!$this->_succeeds) {
+                    throw new \RuntimeException('simulated composer require failure');
+                }
+            }
+
+            protected function readInstalledVersion(string $package): ?string
+            {
+                return $this->_installedVersions[$package] ?? null;
+            }
+        };
+    }
+
     protected function makeAcceptingLogger()
     {
         return new class {

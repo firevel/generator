@@ -14,6 +14,8 @@ class ComposerRequireGenerator extends BaseGenerator
             return;
         }
 
+        $requires = $this->maybeInstallStarPackages($requires);
+
         $composerPath = base_path('composer.json');
 
         if (!file_exists($composerPath)) {
@@ -201,5 +203,119 @@ class ComposerRequireGenerator extends BaseGenerator
 
         $this->logger()->warn("No concrete version found for {$package}; falling back to '*'. Pin a version in `require` to silence this.");
         return '*';
+    }
+
+    /**
+     * For each package resolved to '*', optionally shell out to `composer require`
+     * so Composer can pick a concrete version. Falls back to keeping '*' if Composer
+     * isn't available, the user declines, or the install errors out.
+     */
+    protected function maybeInstallStarPackages(array $resolved): array
+    {
+        $stars = array_keys(array_filter($resolved, fn($v) => $v === '*'));
+
+        if (empty($stars)) {
+            return $resolved;
+        }
+
+        if (!$this->isComposerAvailable()) {
+            $this->logger()->info("Composer not available — keeping '*' for unpinned packages.");
+            return $resolved;
+        }
+
+        foreach ($stars as $package) {
+            if (!$this->confirmInstall($package)) {
+                continue;
+            }
+
+            try {
+                $this->runComposerRequire($package);
+                $installed = $this->readInstalledVersion($package);
+                if ($installed !== null && $installed !== '*') {
+                    $resolved[$package] = $installed;
+                    $this->logger()->info("Installed {$package} at {$installed}");
+                } else {
+                    $this->logger()->warn("composer require {$package} succeeded but no version was recorded in composer.json — keeping '*'.");
+                }
+            } catch (\Throwable $e) {
+                $this->logger()->warn("composer require {$package} failed: " . $e->getMessage() . " — keeping '*'.");
+            }
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Probe whether composer is callable in this environment.
+     *
+     * Returns false if proc_open is disabled, Symfony Process is missing, or `composer --version`
+     * fails for any reason. Overridable in tests.
+     */
+    protected function isComposerAvailable(): bool
+    {
+        if (!class_exists(\Symfony\Component\Process\Process::class)) {
+            return false;
+        }
+
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+        if (in_array('proc_open', $disabled, true)) {
+            return false;
+        }
+
+        try {
+            $process = new \Symfony\Component\Process\Process(['composer', '--version']);
+            $process->setTimeout(10);
+            $process->run();
+            return $process->isSuccessful();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Ask the user whether to install $package via `composer require`. Default yes.
+     * Skips (returns false) if the logger doesn't support interactive confirmation.
+     */
+    protected function confirmInstall(string $package): bool
+    {
+        $logger = $this->logger();
+        if (!method_exists($logger, 'confirm')) {
+            return false;
+        }
+        return (bool) $logger->confirm("Install '{$package}' via 'composer require'?", true);
+    }
+
+    /**
+     * Run `composer require <package>` non-interactively in the project root.
+     * Throws on non-zero exit. Overridable in tests.
+     */
+    protected function runComposerRequire(string $package): void
+    {
+        $process = new \Symfony\Component\Process\Process(
+            ['composer', 'require', '--no-interaction', $package],
+            base_path()
+        );
+        $process->setTimeout(300);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            $stderr = trim($process->getErrorOutput());
+            throw new \RuntimeException($stderr !== '' ? $stderr : 'composer require exited non-zero');
+        }
+    }
+
+    /**
+     * Read the version Composer recorded for $package in composer.json after install.
+     * Overridable in tests.
+     */
+    protected function readInstalledVersion(string $package): ?string
+    {
+        $path = base_path('composer.json');
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $json = json_decode(file_get_contents($path), true);
+        return $json['require'][$package] ?? null;
     }
 }

@@ -12,6 +12,42 @@ class MultiResourceGenerationTest extends TestCase
 {
     use WithWorkbench;
 
+    protected ?string $composerBackup = null;
+    protected ?string $providersBackup = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $composerPath = base_path('composer.json');
+        if (file_exists($composerPath)) {
+            $this->composerBackup = file_get_contents($composerPath);
+        }
+
+        $providersPath = base_path('bootstrap/providers.php');
+        if (file_exists($providersPath)) {
+            $this->providersBackup = file_get_contents($providersPath);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->composerBackup !== null) {
+            file_put_contents(base_path('composer.json'), $this->composerBackup);
+        }
+
+        if ($this->providersBackup !== null) {
+            file_put_contents(base_path('bootstrap/providers.php'), $this->providersBackup);
+        }
+
+        $morphProvider = base_path('app/Providers/MorphMapServiceProvider.php');
+        if (file_exists($morphProvider)) {
+            unlink($morphProvider);
+        }
+
+        parent::tearDown();
+    }
+
     /** @test */
     public function test_generic_app_pipeline_generates_multiple_resources()
     {
