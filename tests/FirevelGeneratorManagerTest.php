@@ -75,4 +75,101 @@ class FirevelGeneratorManagerTest extends \Orchestra\Testbench\TestCase
 
         $this->assertEquals($expected, $pipelines);
     }
+
+    public function testGetPipelinesFlattensHybridShapeToSteps()
+    {
+        Config::set('generator.pipelines', [
+            'hybrid' => [
+                'description' => 'A pipeline with metadata.',
+                'steps' => [
+                    'task' => \App\Generators\NewPipelineTask::class,
+                ],
+            ],
+        ]);
+
+        $pipelines = $this->manager->getPipelines();
+
+        $this->assertEquals(
+            ['task' => \App\Generators\NewPipelineTask::class],
+            $pipelines['hybrid']
+        );
+    }
+
+    public function testGetPipelineReturnsNormalizedHybridShape()
+    {
+        Config::set('generator.pipelines', [
+            'hybrid' => [
+                'description' => 'A pipeline with metadata.',
+                'steps' => [
+                    'task' => \App\Generators\NewPipelineTask::class,
+                ],
+            ],
+        ]);
+
+        $pipeline = $this->manager->getPipeline('hybrid');
+
+        $this->assertSame('A pipeline with metadata.', $pipeline['description']);
+        $this->assertSame(
+            ['task' => \App\Generators\NewPipelineTask::class],
+            $pipeline['steps']
+        );
+    }
+
+    public function testGetPipelineReturnsEmptyDescriptionForLegacyShape()
+    {
+        $pipeline = $this->manager->getPipeline('api-resource');
+
+        $this->assertSame('', $pipeline['description']);
+        $this->assertArrayHasKey('model', $pipeline['steps']);
+    }
+
+    public function testGetPipelineReturnsNullForUnknown()
+    {
+        $this->assertNull($this->manager->getPipeline('does-not-exist'));
+    }
+
+    public function testGetDescriptionsListsAllPipelines()
+    {
+        Config::set('generator.pipelines', [
+            'legacy' => [
+                'task' => \App\Generators\NewPipelineTask::class,
+            ],
+            'hybrid' => [
+                'description' => 'Hybrid one.',
+                'steps' => [
+                    'task' => \App\Generators\NewPipelineTask::class,
+                ],
+            ],
+        ]);
+
+        $descriptions = $this->manager->getDescriptions();
+
+        $this->assertSame('', $descriptions['legacy']);
+        $this->assertSame('Hybrid one.', $descriptions['hybrid']);
+    }
+
+    public function testExtendWithHybridShapeIsNormalized()
+    {
+        $this->manager->extend('runtime-hybrid', [
+            'description' => 'Registered at runtime.',
+            'steps' => [
+                'task' => \App\Generators\NewPipelineTask::class,
+            ],
+        ]);
+
+        $pipeline = $this->manager->getPipeline('runtime-hybrid');
+
+        $this->assertSame('Registered at runtime.', $pipeline['description']);
+        $this->assertSame(
+            ['task' => \App\Generators\NewPipelineTask::class],
+            $pipeline['steps']
+        );
+
+        // getPipelines() flattens for backward compatibility.
+        $pipelines = $this->manager->getPipelines();
+        $this->assertSame(
+            ['task' => \App\Generators\NewPipelineTask::class],
+            $pipelines['runtime-hybrid']
+        );
+    }
 }

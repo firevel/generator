@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class RequestsGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates FormRequest classes (Index/Store/Show/Update/Destroy) for the resource controller.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

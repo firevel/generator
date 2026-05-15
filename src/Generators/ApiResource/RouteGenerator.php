@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class RouteGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Builds the apiResource route definition and pushes it into the pipeline context.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

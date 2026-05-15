@@ -6,6 +6,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class ComposerRequireGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Collects required Composer packages from app/resources/generators and updates composer.json.';
+    }
+
     public function handle()
     {
         $requires = $this->collectRequires();

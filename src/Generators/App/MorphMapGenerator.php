@@ -7,6 +7,11 @@ use Illuminate\Support\Str;
 
 class MorphMapGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates a MorphMapServiceProvider mapping polymorphic aliases to model FQCNs.';
+    }
+
     public function handle()
     {
         $resources = $this->collectResources();

@@ -3,6 +3,7 @@
 namespace Firevel\Generator;
 
 use Firevel\Generator\Console\Commands\Generate;
+use Firevel\Generator\Console\Commands\ListPipelines;
 use Firevel\Generator\Console\Commands\MakeApiResource;
 use Firevel\Generator\FirevelGeneratorManager;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
@@ -20,7 +21,8 @@ class ServiceProvider extends IlluminateServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Generate::class
+                Generate::class,
+                ListPipelines::class,
             ]);
             $this->loadViewsFrom(__DIR__.'/../stubs', 'firevel-generator');
         }

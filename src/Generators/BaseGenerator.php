@@ -18,6 +18,15 @@ abstract class BaseGenerator
         $this->context = $context ?? new PipelineContext(false);
     }
 
+    /**
+     * Short human-readable description shown by `firevel:generate:list`.
+     * Override in concrete generators.
+     */
+    public static function description(): string
+    {
+        return '';
+    }
+
     protected function artisan($command, $parameters = [])
     {
         Artisan::call($command, $parameters);

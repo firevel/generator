@@ -6,6 +6,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class RoutesConsolidatorGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Writes routes collected by RouteGenerator into routes/api.php.';
+    }
+
     public function handle()
     {
         // Get all collected routes from context

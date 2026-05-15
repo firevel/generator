@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class FactoryGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates a model factory for use in tests and seeders.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

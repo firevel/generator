@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class ControllerGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates the API controller exposing index/store/show/update/destroy actions.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

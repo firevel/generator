@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class TransformerGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates a Fractal transformer for serializing the resource (requires spatie/laravel-fractal).';
+    }
+
     public function handle()
     {
         $this->requirePackage('spatie/laravel-fractal', '^6.0');

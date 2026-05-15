@@ -7,6 +7,11 @@ use Firevel\Generator\Resource;
 
 class YamlGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates a Google App Engine app.yaml service descriptor.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

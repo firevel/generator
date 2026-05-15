@@ -2,6 +2,7 @@
 
 namespace Firevel\Generator\Tests\Feature;
 
+use Firevel\Generator\FirevelGeneratorManager;
 use Firevel\Generator\PipelineContext;
 use Firevel\Generator\Resource;
 use Firevel\Generator\ScopedPipelineRunner;
@@ -70,7 +71,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $appPipeline = $pipelines['generic-app'];
         $context = new PipelineContext(true);
@@ -114,7 +115,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $appPipeline = $pipelines['generic-app'];
         $context = new PipelineContext(true);
@@ -163,7 +164,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $appPipeline = $pipelines['appengine-app'];
         $context = new PipelineContext(true);
@@ -201,7 +202,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $scopedSteps = [
             [
@@ -262,7 +263,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $scopedSteps = [
             [
@@ -327,7 +328,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $scopedSteps = [
             [
@@ -390,7 +391,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $scopedSteps = [
             [
@@ -435,7 +436,7 @@ class MultiResourceGenerationTest extends TestCase
 
         $resource = new Resource($resourceData);
 
-        $pipelines = config('generator.pipelines');
+        $pipelines = app(FirevelGeneratorManager::class)->getPipelines();
 
         $scopedSteps = [
             [

@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class PolicyGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates an authorization policy class for the resource.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

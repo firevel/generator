@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class SeederGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates a database seeder stub for the resource.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

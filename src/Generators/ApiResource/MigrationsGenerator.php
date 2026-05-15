@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class MigrationsGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates database migrations for the resource table and any pivot tables.';
+    }
+
     public function handle()
     {
         $this->generateResourceMigration();

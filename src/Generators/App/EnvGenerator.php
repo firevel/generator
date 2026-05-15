@@ -6,6 +6,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class EnvGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Writes top-level env entries from the schema into the application .env file.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();

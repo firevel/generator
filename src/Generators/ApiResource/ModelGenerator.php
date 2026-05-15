@@ -7,6 +7,11 @@ use Firevel\Generator\Generators\BaseGenerator;
 
 class ModelGenerator extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Generates the Eloquent model class (fillable, casts, relationships, searchable, etc.).';
+    }
+
     public function handle()
     {
         $source = $this->generateSource();

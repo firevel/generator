@@ -7,6 +7,11 @@ use Firevel\Generator\Resource;
 
 class GetParameters extends BaseGenerator
 {
+    public static function description(): string
+    {
+        return 'Prompts for any missing resource parameters (e.g. name) before generation begins.';
+    }
+
     public function handle()
     {
         $resource = $this->resource();
