@@ -66,7 +66,16 @@ class ScopedPipelineRunner
         if (is_string($step)) {
             $generator = new $step($this->resource, $this->context);
             $generator->setLogger($this->logger());
-            $generator->handle();
+
+            try {
+                $generator->handle();
+            } catch (\Throwable $e) {
+                throw new \RuntimeException(
+                    sprintf("Step (%s) failed: %s", $step, $e->getMessage()),
+                    0,
+                    $e
+                );
+            }
             return;
         }
 

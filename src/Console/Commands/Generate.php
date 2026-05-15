@@ -22,7 +22,7 @@ class Generate extends Command
      *
      * @var string
      */
-    protected $signature = 'firevel:generate {pipeline? : Pipeline name or comma-separated list of pipelines} {--only=} {--json= : JSON file/URL or comma-separated list (one per pipeline). Use @output (or an empty slot) to consume the previous pipeline\'s emitted output.} {--pipe : For chained pipelines, auto-fill missing/empty JSON slots after the first with @output. Explicit slots still win.}';
+    protected $signature = 'firevel:generate {pipeline? : Pipeline name or comma-separated list of pipelines} {--only=} {--json= : JSON file/URL or comma-separated list (one per pipeline). Use @output (or an empty slot) to consume the previous pipeline\'s emitted output.} {--pipe : For chained pipelines, auto-fill missing/empty JSON slots after the first with @output. Explicit slots still win.} {--dry-run : Report what each generator would do without writing files or running side effects.} {--skip-existing : When a generated file already exists, skip it instead of overwriting.}';
 
     /**
      * The console command description.
@@ -65,6 +65,12 @@ class Generate extends Command
         // can read state pushed by earlier ones (composer_requires, routes,
         // emitOutput, etc.).
         $chainContext = new PipelineContext(true);
+        $chainContext->set('dry_run', (bool) $this->option('dry-run'));
+        $chainContext->set('skip_existing', (bool) $this->option('skip-existing'));
+
+        if ($chainContext->get('dry_run')) {
+            $this->warn('Dry-run mode: no files will be written and side effects (artisan calls, composer require) will be skipped.');
+        }
 
         $autoPipe = (bool) $this->option('pipe');
 
@@ -96,8 +102,38 @@ class Generate extends Command
             // clean output slot. Generators emit theirs via emitOutput().
             $chainContext->forget('output');
 
-            $this->executePipeline($pipelineName, $pipelines[$pipelineName], $resource, $pipelines, $chainContext);
+            try {
+                $this->executePipeline($pipelineName, $pipelines[$pipelineName], $resource, $pipelines, $chainContext);
+            } catch (\Throwable $e) {
+                // Split into two lines so Symfony's error block doesn't wrap
+                // the failing step name onto a separate visual line.
+                $this->error("Pipeline '{$pipelineName}' failed.");
+                $this->line($e->getMessage());
+
+                $root = $this->rootCause($e);
+                if ($root !== $e) {
+                    $this->line("  at " . $root->getFile() . ':' . $root->getLine());
+                }
+
+                // Abort the rest of the chain — later pipelines may consume
+                // output from a pipeline that didn't finish, which is unsafe.
+                return self::FAILURE;
+            }
         }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Walk the exception chain to the deepest cause so we can report the
+     * original file:line, not the wrapping RuntimeException's.
+     */
+    protected function rootCause(\Throwable $e): \Throwable
+    {
+        while ($e->getPrevious() !== null) {
+            $e = $e->getPrevious();
+        }
+        return $e;
     }
 
     /**

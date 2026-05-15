@@ -112,7 +112,11 @@ class MorphMapGenerator extends BaseGenerator
         // If only one side is present, drop the stale file so make:provider can recreate
         // both the class and the registration from a clean slate.
         if ($fileExists) {
-            unlink($providerPath);
+            if ($this->isDryRun()) {
+                $this->logger()->info("- [dry-run] Would delete stale provider: {$providerPath}");
+            } else {
+                unlink($providerPath);
+            }
         }
 
         $this->artisan('make:provider', ['name' => 'MorphMapServiceProvider']);

@@ -156,7 +156,7 @@ class EnvGenerator extends BaseGenerator
             $content = implode("\n", $lines) . "\n";
         }
 
-        file_put_contents($envPath, $content);
+        $this->updateFile($envPath, $content);
         $this->logger()->info(".env file updated successfully");
     }
 

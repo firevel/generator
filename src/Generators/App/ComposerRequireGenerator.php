@@ -95,7 +95,7 @@ class ComposerRequireGenerator extends BaseGenerator
 
         // Save composer.json with pretty print
         $updatedContent = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
-        file_put_contents($composerPath, $updatedContent);
+        $this->updateFile($composerPath, $updatedContent);
 
         $this->logger()->info("composer.json updated successfully");
         $this->logger()->info("Run 'composer update' to install the new packages");
@@ -220,6 +220,13 @@ class ComposerRequireGenerator extends BaseGenerator
         $stars = array_keys(array_filter($resolved, fn($v) => $v === '*'));
 
         if (empty($stars)) {
+            return $resolved;
+        }
+
+        if ($this->isDryRun()) {
+            foreach ($stars as $package) {
+                $this->logger()->info("[dry-run] Would resolve '{$package}' via 'composer require' — keeping '*'.");
+            }
             return $resolved;
         }
 

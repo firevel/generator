@@ -33,7 +33,17 @@ class ResourceGenerator
         foreach ($this->generators as $name => $class) {
             $generatorInstance = new $class($this->resource, $this->context);
             $generatorInstance->setLogger($this->logger());
-            $generatorInstance->handle();
+
+            try {
+                $generatorInstance->handle();
+            } catch (\Throwable $e) {
+                throw new \RuntimeException(
+                    sprintf("Step '%s' (%s) failed: %s", $name, $class, $e->getMessage()),
+                    0,
+                    $e
+                );
+            }
+
             $this->logger()->info('');
         }
     }

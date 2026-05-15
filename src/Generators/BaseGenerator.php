@@ -29,7 +29,36 @@ abstract class BaseGenerator
 
     protected function artisan($command, $parameters = [])
     {
+        if ($this->isDryRun()) {
+            $rendered = trim($command . ' ' . implode(' ', array_map(
+                fn($k, $v) => is_int($k) ? (string) $v : "--{$k}=" . escapeshellarg((string) $v),
+                array_keys($parameters),
+                array_values($parameters),
+            )));
+            $this->logger?->info("[dry-run] Would call: php artisan {$rendered}");
+            return;
+        }
+
         Artisan::call($command, $parameters);
+    }
+
+    /**
+     * True when --dry-run was passed to firevel:generate. Generators with
+     * side effects (file writes, shelling out, artisan calls) should consult
+     * this before performing the side effect.
+     */
+    public function isDryRun(): bool
+    {
+        return (bool) $this->context->get('dry_run', false);
+    }
+
+    /**
+     * True when --skip-existing was passed. Used by createFile() to avoid
+     * overwriting hand-edited files.
+     */
+    public function shouldSkipExisting(): bool
+    {
+        return (bool) $this->context->get('skip_existing', false);
     }
 
     public function setLogger($logger)
@@ -134,19 +163,57 @@ abstract class BaseGenerator
         $this->context->set('composer_requires', $requires);
     }
 
+    /**
+     * Create or overwrite a file at $path with $content.
+     *
+     * Honors --skip-existing (skips if the file exists) and --dry-run (logs
+     * the intent instead of writing). Returns true if the file was written
+     * (or would be in dry-run), false if it was skipped.
+     */
     protected function createFile($path, $content)
     {
-        // Get the directory name from the file path
-        $dir = dirname($path);
+        $exists = file_exists($path);
 
-        // Check if the directory exists
+        if ($exists && $this->shouldSkipExisting()) {
+            $this->logger?->info("- Skipped (exists): {$path}");
+            return false;
+        }
+
+        if ($this->isDryRun()) {
+            $verb = $exists ? 'Would overwrite' : 'Would create';
+            $this->logger?->info("- [dry-run] {$verb}: {$path} (" . strlen((string) $content) . " bytes)");
+            return true;
+        }
+
+        $dir = dirname($path);
         if (!is_dir($dir)) {
-            // If the directory does not exist, create it
             mkdir($dir, 0755, true);
         }
 
-        // Create or update the file
         file_put_contents($path, $content);
+        return true;
+    }
+
+    /**
+     * Update an in-place file (.env, composer.json, etc.) with new contents.
+     *
+     * Differs from createFile() by not honoring --skip-existing — the whole
+     * point of these files is to modify them. Still honors --dry-run.
+     */
+    protected function updateFile(string $path, string $content): bool
+    {
+        if ($this->isDryRun()) {
+            $this->logger?->info("- [dry-run] Would update: {$path} (" . strlen($content) . " bytes)");
+            return true;
+        }
+
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        file_put_contents($path, $content);
+        return true;
     }
 
     abstract public function handle();
