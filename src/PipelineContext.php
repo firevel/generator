@@ -73,6 +73,14 @@ class PipelineContext
     }
 
     /**
+     * Remove a key from the context. No-op if the key is absent.
+     */
+    public function forget(string $key): void
+    {
+        unset($this->data[$key]);
+    }
+
+    /**
      * Get all context data
      *
      * @return array

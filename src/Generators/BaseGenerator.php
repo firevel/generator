@@ -67,6 +67,25 @@ abstract class BaseGenerator
     }
 
     /**
+     * Expose the result of this pipeline so a chained pipeline can consume it
+     * as its input via `--json=@previous`.
+     *
+     * Stored under `output` in the shared PipelineContext. The Generate command
+     * captures and clears this value between pipelines, so only the last value
+     * set by a pipeline survives.
+     *
+     * @param array|\Firevel\Generator\Resource $data
+     */
+    protected function emitOutput($data): void
+    {
+        if ($data instanceof Resource) {
+            $data = $data->all();
+        }
+
+        $this->context->set('output', $data);
+    }
+
+    /**
      * Declare that the generated code needs a Composer package.
      *
      * The package + version is pushed into the pipeline context under
