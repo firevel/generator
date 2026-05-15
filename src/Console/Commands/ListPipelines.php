@@ -17,6 +17,15 @@ class ListPipelines extends Command
         $manager = app(FirevelGeneratorManager::class);
         $name = $this->argument('pipeline');
 
+        $errors = $manager->validate();
+        if (!empty($errors)) {
+            $this->warn('Pipeline registry has errors (commands referencing these will fail):');
+            foreach ($errors as $error) {
+                $this->line("  - {$error}");
+            }
+            $this->line('');
+        }
+
         if ($name !== null) {
             return $this->showPipeline($manager, $name);
         }

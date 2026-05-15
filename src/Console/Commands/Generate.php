@@ -44,9 +44,21 @@ class Generate extends Command
         $pipelineNames = array_map('trim', explode(',', $pipelineArg));
 
         $manager = app(FirevelGeneratorManager::class);
+
+        // Pre-flight: catch typos in custom pipelines (missing classes, bad
+        // scoped references, cycles) before any file is written.
+        $registryErrors = $manager->validate();
+        if (!empty($registryErrors)) {
+            $this->error('Pipeline registry has errors:');
+            foreach ($registryErrors as $error) {
+                $this->line("  - {$error}");
+            }
+            return self::FAILURE;
+        }
+
         $pipelines = $manager->getPipelines();
 
-        // Validate all pipelines exist before executing any
+        // Validate all requested pipelines exist before executing any
         foreach ($pipelineNames as $pipelineName) {
             if (empty($pipelines[$pipelineName])) {
                 $this->error("Pipeline '{$pipelineName}' is not configured.");

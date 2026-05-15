@@ -2,6 +2,8 @@
 
 namespace Firevel\Generator;
 
+use Firevel\Generator\Generators\BaseGenerator;
+
 class FirevelGeneratorManager
 {
     protected $pipelines = [];
@@ -108,5 +110,101 @@ class FirevelGeneratorManager
         }
 
         return '';
+    }
+
+    /**
+     * Validate every registered pipeline. Returns an array of human-readable
+     * error strings — empty array means the registry is valid.
+     *
+     * Checks:
+     *  - class steps reference real classes that extend BaseGenerator
+     *  - scoped steps reference real pipelines
+     *  - no circular scope references (A -> B -> A)
+     *
+     * Cheap to call. Use it in `firevel:generate` before any file write so
+     * typos surface up-front instead of mid-generation.
+     */
+    public function validate(): array
+    {
+        $errors = [];
+        $pipelines = $this->mergedConfig();
+
+        foreach ($pipelines as $name => $pipeline) {
+            $steps = $this->stepsOf($pipeline);
+
+            foreach ($steps as $stepKey => $step) {
+                $errors = array_merge($errors, $this->validateStep($name, $stepKey, $step, $pipelines));
+            }
+        }
+
+        foreach (array_keys($pipelines) as $name) {
+            $cycle = $this->detectScopeCycle($name, $pipelines);
+            if ($cycle !== null) {
+                $errors[] = "Pipeline '{$name}' has a circular scope reference: " . implode(' -> ', $cycle);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param int|string $stepKey
+     * @return string[]
+     */
+    protected function validateStep(string $pipelineName, $stepKey, $step, array $allPipelines): array
+    {
+        $location = is_string($stepKey)
+            ? "pipeline '{$pipelineName}' step '{$stepKey}'"
+            : "pipeline '{$pipelineName}' step #{$stepKey}";
+
+        if (is_string($step)) {
+            if (!class_exists($step)) {
+                return ["{$location}: class '{$step}' does not exist."];
+            }
+            if (!is_subclass_of($step, BaseGenerator::class)) {
+                return ["{$location}: class '{$step}' must extend " . BaseGenerator::class . '.'];
+            }
+            return [];
+        }
+
+        if (is_array($step) && isset($step['scope'], $step['pipeline'])) {
+            $target = $step['pipeline'];
+            if (!array_key_exists($target, $allPipelines)) {
+                return ["{$location}: references unknown pipeline '{$target}'."];
+            }
+            return [];
+        }
+
+        return ["{$location}: unrecognized step shape (expected a generator class name or a ['scope' => ..., 'pipeline' => ...] array)."];
+    }
+
+    /**
+     * Walk scope references starting at $start. Returns the cycle path if a
+     * cycle is found, otherwise null.
+     *
+     * @return string[]|null
+     */
+    protected function detectScopeCycle(string $start, array $allPipelines, array $visiting = []): ?array
+    {
+        if (in_array($start, $visiting, true)) {
+            return array_merge($visiting, [$start]);
+        }
+
+        if (!array_key_exists($start, $allPipelines)) {
+            return null;
+        }
+
+        $visiting[] = $start;
+
+        foreach ($this->stepsOf($allPipelines[$start]) as $step) {
+            if (is_array($step) && isset($step['pipeline']) && array_key_exists($step['pipeline'], $allPipelines)) {
+                $found = $this->detectScopeCycle($step['pipeline'], $allPipelines, $visiting);
+                if ($found !== null) {
+                    return $found;
+                }
+            }
+        }
+
+        return null;
     }
 }
