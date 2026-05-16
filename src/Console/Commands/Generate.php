@@ -7,6 +7,7 @@ use Firevel\Generator\PipelineContext;
 use Firevel\Generator\Resource;
 use Firevel\Generator\ResourceGenerator;
 use Firevel\Generator\ScopedPipelineRunner;
+use Firevel\Generator\Validation\InputSchemaValidator;
 use Illuminate\Console\Command;
 
 class Generate extends Command
@@ -106,6 +107,23 @@ class Generate extends Command
             } catch (\RuntimeException $e) {
                 $this->error($e->getMessage());
                 return;
+            }
+
+            $schema = $manager->getInputSchema($pipelineName);
+            if ($schema !== null) {
+                $inputErrors = InputSchemaValidator::validate(
+                    $attributes,
+                    $schema,
+                    $manager->getInputErrorMessages($pipelineName),
+                    $pipelineName
+                );
+                if (!empty($inputErrors)) {
+                    $this->error("Pipeline '{$pipelineName}' input does not match the expected shape:");
+                    foreach ($inputErrors as $error) {
+                        $this->line("  - {$error}");
+                    }
+                    return self::FAILURE;
+                }
             }
 
             $resource = new Resource($attributes);

@@ -62,6 +62,46 @@ class FirevelGeneratorManager
     }
 
     /**
+     * Return the declared JSON Schema for a pipeline's input, or null if none.
+     *
+     * The schema is the `input_schema` key of the hybrid pipeline shape. It
+     * may be:
+     *   - an inline associative array (the schema itself, as PHP)
+     *   - a string path to a `.json` file
+     *
+     * Pair with {@see getInputErrorMessages()} to attach user-facing custom
+     * messages keyed by JSON Pointer.
+     *
+     * @return array|string|null
+     */
+    public function getInputSchema(string $name)
+    {
+        $pipeline = $this->mergedConfig()[$name] ?? null;
+        if (!$this->isHybridShape($pipeline)) {
+            return null;
+        }
+
+        return $pipeline['input_schema'] ?? null;
+    }
+
+    /**
+     * Return JSON Pointer => custom message map for input-validation errors.
+     * Empty array means "use the validator's default messages."
+     *
+     * @return array<string, string>
+     */
+    public function getInputErrorMessages(string $name): array
+    {
+        $pipeline = $this->mergedConfig()[$name] ?? null;
+        if (!$this->isHybridShape($pipeline)) {
+            return [];
+        }
+
+        $messages = $pipeline['input_error_messages'] ?? [];
+        return is_array($messages) ? $messages : [];
+    }
+
+    /**
      * Return `[name => description]` for every registered pipeline.
      *
      * @return array<string, string>
