@@ -264,15 +264,14 @@ class EnvGeneratorTest extends \Orchestra\Testbench\TestCase
         $generator->setLogger($logger);
         $generator->handle();
 
-        // Verify message about existing variable
-        $hasMessage = false;
+        // Same-value updates should be a silent no-op: no "already exists"
+        // chatter and the file content is left untouched.
         foreach ($logger->messages as $message) {
-            if (str_contains($message, 'already exists with the same value')) {
-                $hasMessage = true;
-                break;
-            }
+            $this->assertStringNotContainsString('already exists', $message);
+            $this->assertStringNotContainsString('added:', $message);
+            $this->assertStringNotContainsString('changed:', $message);
         }
-        $this->assertTrue($hasMessage, 'Should log that variable already exists with same value');
+        $this->assertSame("APP_NAME=TestApp\n", file_get_contents($this->envPath));
     }
 
     /** @test */

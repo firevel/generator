@@ -27,20 +27,22 @@ class RouteGeneratorTest extends TestCase
         $generator = new RouteGenerator($resource, $context);
 
         $logger = Mockery::mock('stdClass');
-        $logger->shouldReceive('info')
-            ->with("# Generating route")
-            ->once()
-            ->andReturn(null);
-        $logger->shouldReceive('info')
-            ->with("- [Required] Register the API route: Route::apiResource('posts', \\App\\Http\\Controllers\\Api\\PostsController::class);")
-            ->once()
-            ->andReturn(null);
+        $logger->shouldReceive('info')->andReturn(null);
 
         $generator->setLogger($logger);
         $generator->handle();
 
         // Verify context doesn't have routes
         $this->assertFalse($context->has('routes'));
+
+        // The route snippet is now surfaced as a manual follow-up step in the
+        // pipeline summary rather than printed inline.
+        $steps = $context->get('summary.manual_steps', []);
+        $this->assertNotEmpty($steps);
+        $this->assertStringContainsString(
+            "Route::apiResource('posts', \\App\\Http\\Controllers\\Api\\PostsController::class)",
+            $steps[0]
+        );
     }
 
     /** @test */
@@ -55,7 +57,7 @@ class RouteGeneratorTest extends TestCase
 
         $logger = Mockery::mock('stdClass');
         $logger->shouldReceive('info')
-            ->with("# Route collected: posts")
+            ->with("collected route 'posts' (consolidated later)")
             ->once()
             ->andReturn(null);
 

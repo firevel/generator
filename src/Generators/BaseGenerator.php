@@ -173,15 +173,20 @@ abstract class BaseGenerator
     protected function createFile($path, $content)
     {
         $exists = file_exists($path);
+        $relative = $this->relativePath($path);
 
         if ($exists && $this->shouldSkipExisting()) {
-            $this->logger?->info("- Skipped (exists): {$path}");
+            $this->recordFileAction('skipped', $path);
+            $this->logger?->info("skipped  {$relative} (exists)");
             return false;
         }
 
+        $verb = $exists ? 'overwrote' : 'created';
+
         if ($this->isDryRun()) {
-            $verb = $exists ? 'Would overwrite' : 'Would create';
-            $this->logger?->info("- [dry-run] {$verb}: {$path} (" . strlen((string) $content) . " bytes)");
+            $bytes = strlen((string) $content);
+            $this->recordFileAction($verb, $path);
+            $this->logger?->info("[dry-run] {$verb} {$relative} ({$bytes} bytes)");
             return true;
         }
 
@@ -191,6 +196,8 @@ abstract class BaseGenerator
         }
 
         file_put_contents($path, $content);
+        $this->recordFileAction($verb, $path);
+        $this->logger?->info("{$verb} {$relative}");
         return true;
     }
 
@@ -202,8 +209,12 @@ abstract class BaseGenerator
      */
     protected function updateFile(string $path, string $content): bool
     {
+        $relative = $this->relativePath($path);
+
         if ($this->isDryRun()) {
-            $this->logger?->info("- [dry-run] Would update: {$path} (" . strlen($content) . " bytes)");
+            $bytes = strlen($content);
+            $this->recordFileAction('updated', $path);
+            $this->logger?->info("[dry-run] updated {$relative} ({$bytes} bytes)");
             return true;
         }
 
@@ -213,7 +224,59 @@ abstract class BaseGenerator
         }
 
         file_put_contents($path, $content);
+        $this->recordFileAction('updated', $path);
+        $this->logger?->info("updated {$relative}");
         return true;
+    }
+
+    /**
+     * Strip the base_path() prefix from $path so logs show repo-relative paths
+     * that an LLM can match against the working tree.
+     */
+    protected function relativePath(string $path): string
+    {
+        if (!function_exists('base_path')) {
+            return $path;
+        }
+
+        $base = rtrim(base_path(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (str_starts_with($path, $base)) {
+            return substr($path, strlen($base));
+        }
+
+        return $path;
+    }
+
+    /**
+     * Push a (verb, path) pair into the per-pipeline summary buckets. Consumed
+     * by ResourceGenerator after the loop finishes.
+     *
+     * Valid verbs: 'created', 'overwrote', 'skipped', 'updated'.
+     */
+    protected function recordFileAction(string $verb, string $path): void
+    {
+        $actions = $this->context->get('summary.actions', []);
+        if (!is_array($actions)) {
+            $actions = [];
+        }
+        $actions[$verb][] = $this->relativePath($path);
+        $this->context->set('summary.actions', $actions);
+    }
+
+    /**
+     * Record a manual follow-up step the user must perform (e.g., "register
+     * routes in routes/api.php"). Surfaced in the per-pipeline summary so an
+     * LLM can act on it without scanning the full transcript.
+     */
+    protected function addManualStep(string $message): void
+    {
+        $steps = $this->context->get('summary.manual_steps', []);
+        if (!is_array($steps)) {
+            $steps = [];
+        }
+        $steps[] = $message;
+        $this->context->set('summary.manual_steps', $steps);
     }
 
     abstract public function handle();

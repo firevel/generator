@@ -105,21 +105,20 @@ class RoutesConsolidatorGeneratorTest extends TestCase
     }
 
     /** @test */
-    public function test_no_routes_logs_message()
+    public function test_no_routes_is_silent()
     {
         $context = new PipelineContext(true);
         $resource = new Resource([]);
         $generator = new RoutesConsolidatorGenerator($resource, $context);
 
         $logger = Mockery::mock('stdClass');
-        $logger->shouldReceive('info')
-            ->with("# No routes to consolidate")
-            ->once()
-            ->andReturn(null);
+        // With nothing to consolidate the generator should make no noise at
+        // all — the per-pipeline summary covers the empty-state case.
+        $logger->shouldNotReceive('info');
 
         $generator->setLogger($logger);
         $generator->handle();
 
-        $this->assertTrue(true);
+        $this->assertEmpty($context->get('summary.manual_steps', []));
     }
 }

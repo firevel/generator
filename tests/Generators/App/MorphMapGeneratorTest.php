@@ -181,8 +181,14 @@ class MorphMapGeneratorTest extends \Orchestra\Testbench\TestCase
         $providersAfter = file_get_contents($this->providersPath);
         $this->assertSame(1, substr_count($providersAfter, 'MorphMapServiceProvider::class'));
 
+        // Idempotent re-run: the only generator output should be the morph-map
+        // refresh — no "already registered" notice and no make:provider call.
         $infoMessages = array_column($messages, 'message');
-        $this->assertNotEmpty(array_filter($infoMessages, fn($m) => str_contains($m, 'already registered')));
+        $this->assertEmpty(array_filter($infoMessages, fn($m) => str_contains($m, 'already registered')));
+        $this->assertNotEmpty(array_filter(
+            $infoMessages,
+            fn($m) => str_contains($m, 'morph map:')
+        ));
     }
 
     /** @test */

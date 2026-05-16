@@ -210,7 +210,8 @@ class ComposerRequireGeneratorTest extends \Orchestra\Testbench\TestCase
         // First, add a package
         $composer = json_decode(file_get_contents($this->composerPath), true);
         $composer['require']['test/package'] = '^1.0';
-        file_put_contents($this->composerPath, json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $originalContent = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        file_put_contents($this->composerPath, $originalContent);
 
         // Try to add the same version
         $input = new Resource([
@@ -235,15 +236,15 @@ class ComposerRequireGeneratorTest extends \Orchestra\Testbench\TestCase
         $generator->setLogger($logger);
         $generator->handle();
 
-        // Verify package already exists message
-        $hasMessage = false;
+        // Same-version requires should be a no-op: no logs about "already
+        // exists", no rewrite of composer.json, and no manual follow-up step.
         foreach ($logger->messages as $message) {
-            if (str_contains($message, 'already exists with version')) {
-                $hasMessage = true;
-                break;
-            }
+            $this->assertStringNotContainsString('already exists', $message);
+            $this->assertStringNotContainsString('added:', $message);
+            $this->assertStringNotContainsString('updated:', $message);
         }
-        $this->assertTrue($hasMessage, 'Should log that package already exists with same version');
+        $this->assertSame($originalContent, file_get_contents($this->composerPath));
+        $this->assertEmpty($context->get('summary.manual_steps', []));
     }
 
     /** @test */

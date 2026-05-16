@@ -25,7 +25,5 @@ class PolicyGenerator extends BaseGenerator
             ]
         );
         $this->createFile($path, $source);
-        $this->logger()->info("# Policy created: {$path}");
-        $this->logger()->info('- [Optional] Set policies https://laravel.com/docs/authorization#writing-policies');
     }
 }

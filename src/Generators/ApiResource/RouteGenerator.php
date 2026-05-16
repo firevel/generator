@@ -29,12 +29,12 @@ class RouteGenerator extends BaseGenerator
                 'resourceName' => $resource->name()->plural()->studly(),
             ]);
 
-            $this->logger()->info("# Route collected: {$name}");
+            $this->logger()->info("collected route '{$name}' (consolidated later)");
             return;
         }
 
-        // Standalone mode - log instructions (current behavior)
-        $this->logger()->info("# Generating route");
-        $this->logger()->info("- [Required] Register the API route: {$routeCode}");
+        // Standalone mode — surface the route as a manual follow-up so it
+        // ends up in the per-pipeline summary instead of getting buried.
+        $this->addManualStep("register route in routes/api.php: {$routeCode}");
     }
 }

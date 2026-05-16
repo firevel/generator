@@ -60,7 +60,7 @@ class RunOptionsTest extends TestCase
             '--dry-run' => true,
         ])
         ->expectsOutputToContain('Dry-run mode')
-        ->expectsOutputToContain('[dry-run] Would create')
+        ->expectsOutputToContain('[dry-run] created')
         ->assertExitCode(0);
 
         $this->assertFileDoesNotExist(self::$writePath);
@@ -75,7 +75,7 @@ class RunOptionsTest extends TestCase
             'pipeline' => 'test-write',
             '--dry-run' => true,
         ])
-        ->expectsOutputToContain('[dry-run] Would overwrite')
+        ->expectsOutputToContain('[dry-run] overwrote')
         ->assertExitCode(0);
 
         $this->assertSame('existing', file_get_contents(self::$writePath));
@@ -90,7 +90,7 @@ class RunOptionsTest extends TestCase
             'pipeline' => 'test-write',
             '--skip-existing' => true,
         ])
-        ->expectsOutputToContain('Skipped (exists)')
+        ->expectsOutputToContain('(exists)')
         ->assertExitCode(0);
 
         $this->assertSame('hand-edited', file_get_contents(self::$writePath));
@@ -131,7 +131,7 @@ class RunOptionsTest extends TestCase
             'pipeline' => 'test-update',
             '--dry-run' => true,
         ])
-        ->expectsOutputToContain('[dry-run] Would update')
+        ->expectsOutputToContain('[dry-run] updated')
         ->assertExitCode(0);
 
         $this->assertSame('before-update-2', file_get_contents(self::$writePath));

@@ -29,55 +29,34 @@ class MigrationsGenerator extends BaseGenerator
         $existingMigrations = glob($migrationsPath . '/' . $migrationPattern);
 
         if (!empty($existingMigrations)) {
-            // Use the first matching migration file
             $existingFilePath = $existingMigrations[0];
-            $existingFileName = basename($existingFilePath);
-            $this->logger()->info("Found existing migration: {$existingFileName}");
 
-            // Check if logger supports interactive confirmation
-            $shouldOverride = true; // default to yes
+            $shouldOverride = true;
             if (method_exists($this->logger(), 'confirm')) {
                 $shouldOverride = $this->logger()->confirm(
-                    "A migration for {$tableName} table already exists. Do you want to override it?",
-                    true // default to yes
+                    "Migration for '{$tableName}' table already exists. Overwrite?",
+                    true
                 );
             }
 
             if (!$shouldOverride) {
-                $this->logger()->info("Skipped migration creation for {$tableName} table");
+                $this->logger()->info("skipped " . $this->relativePath($existingFilePath) . " (kept existing)");
+                $this->recordFileAction('skipped', $existingFilePath);
                 return;
             }
 
-            // Overwrite the existing migration file
-            $source = $this->render(
-                'api-resource/migration',
-                [
-                    'resource' => $resource,
-                ]
-            );
-
+            $source = $this->render('api-resource/migration', ['resource' => $resource]);
             $this->createFile($existingFilePath, $source);
-
-            $this->logger()->info("# Migration overwritten: {$existingFileName}");
-            $this->logger()->info('- [Required] Set migration');
-            $this->logger()->info('  - Available column types https://laravel.com/docs/migrations#available-column-types)');
         } else {
-            // No existing migration, create a new one
             $name = date('Y_m_d_His') . "_create_{$tableName}_table";
             $path = database_path('migrations' . '/' . "{$name}.php");
 
-            $source = $this->render(
-                'api-resource/migration',
-                [
-                    'resource' => $resource,
-                ]
-            );
-
+            $source = $this->render('api-resource/migration', ['resource' => $resource]);
             $this->createFile($path, $source);
+        }
 
-            $this->logger()->info("# Migration created: {$name}");
-            $this->logger()->info('- [Required] Set migration');
-            $this->logger()->info('  - Available column types https://laravel.com/docs/migrations#available-column-types)');
+        if (!$resource->has('migrations.create')) {
+            $this->addManualStep("define columns for '{$tableName}' migration (schema has no migrations.create)");
         }
     }
 
@@ -112,7 +91,8 @@ class MigrationsGenerator extends BaseGenerator
             // Cross-run dedupe: skip if a pivot migration for this table already exists.
             $existing = glob($migrationsPath . '/*_create_' . $table . '_pivot_table.php');
             if (!empty($existing)) {
-                $this->logger()->info("Pivot migration for '{$table}' already exists, skipping");
+                $this->logger()->info("skipped " . $this->relativePath($existing[0]) . " (pivot exists)");
+                $this->recordFileAction('skipped', $existing[0]);
                 $emitted[] = $table;
                 $this->context->set('emitted_pivots', $emitted);
                 continue;
@@ -121,19 +101,12 @@ class MigrationsGenerator extends BaseGenerator
             $name = date('Y_m_d_His') . "_create_{$table}_pivot_table";
             $path = $migrationsPath . '/' . "{$name}.php";
 
-            $source = $this->render(
-                'api-resource/pivot-migration',
-                [
-                    'pivot' => $pivot,
-                ]
-            );
+            $source = $this->render('api-resource/pivot-migration', ['pivot' => $pivot]);
 
             $this->createFile($path, $source);
 
             $emitted[] = $table;
             $this->context->set('emitted_pivots', $emitted);
-
-            $this->logger()->info("# Pivot migration created: {$name}");
         }
     }
 

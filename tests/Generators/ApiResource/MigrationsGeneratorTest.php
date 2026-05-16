@@ -80,9 +80,12 @@ class MigrationsGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertCount(1, $migrations, 'Expected one migration file to be created');
         $this->assertFileExists($migrations[0]);
 
-        // Verify logger received creation message
+        // BaseGenerator's createFile() now emits the per-file line itself —
+        // look for the unified "created <path>" format instead of the old
+        // "Migration created:" prefix.
         $creationMessages = array_filter($logger->messages, function($log) {
-            return strpos($log['message'], 'Migration created:') !== false;
+            return str_starts_with($log['message'], 'created ')
+                && str_contains($log['message'], '_create_test_users_table.php');
         });
         $this->assertCount(1, $creationMessages, 'Expected one migration creation log message');
     }
@@ -132,16 +135,14 @@ class MigrationsGeneratorTest extends \Orchestra\Testbench\TestCase
         $newMtime = filemtime($migrationsAfter[0]);
         $this->assertGreaterThan($originalMtime, $newMtime, 'File should have been modified');
 
-        // Verify logger received the override message
+        // Overwrites now surface through createFile() as "overwrote <path>"
+        // — no separate "Found existing migration" line is emitted because
+        // the per-file log already conveys it.
         $overwriteMessages = array_filter($logger2->messages, function($log) {
-            return strpos($log['message'], 'Found existing migration:') !== false;
+            return str_starts_with($log['message'], 'overwrote ')
+                && str_contains($log['message'], '_create_products_table.php');
         });
-        $this->assertCount(1, $overwriteMessages, 'Expected message about existing migration');
-
-        $overwrittenMessages = array_filter($logger2->messages, function($log) {
-            return strpos($log['message'], 'Migration overwritten:') !== false;
-        });
-        $this->assertCount(1, $overwrittenMessages, 'Expected message about overwriting migration');
+        $this->assertCount(1, $overwriteMessages, 'Expected message about overwriting migration');
     }
 
     /** @test */
@@ -198,9 +199,10 @@ class MigrationsGeneratorTest extends \Orchestra\Testbench\TestCase
         $this->assertEquals($originalContent, $newContent, 'Content should not have changed');
         $this->assertEquals($originalMtime, $newMtime, 'Modification time should not have changed');
 
-        // Verify logger received skip message
+        // Decline → emits "skipped <path> (kept existing)"
         $skipMessages = array_filter($logger2->messages, function($log) {
-            return strpos($log['message'], 'Skipped migration creation') !== false;
+            return str_starts_with($log['message'], 'skipped ')
+                && str_contains($log['message'], '(kept existing)');
         });
         $this->assertCount(1, $skipMessages, 'Expected message about skipping migration');
     }
@@ -416,7 +418,8 @@ class MigrationsGeneratorTest extends \Orchestra\Testbench\TestCase
         );
 
         $skipMessages = array_filter($logger->messages, function ($log) {
-            return strpos($log['message'], "Pivot migration for 'post_tag' already exists") !== false;
+            return str_starts_with($log['message'], 'skipped ')
+                && str_contains($log['message'], '(pivot exists)');
         });
         $this->assertCount(1, $skipMessages, 'Expected skip message for existing pivot migration');
     }

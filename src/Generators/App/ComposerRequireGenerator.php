@@ -61,7 +61,6 @@ class ComposerRequireGenerator extends BaseGenerator
         $packagesToUpdate = [];
         foreach ($existingPackages as $package => $versions) {
             if ($versions['old'] === $versions['new']) {
-                $this->logger()->info("Package {$package} already exists with version {$versions['old']}");
                 continue;
             }
 
@@ -79,26 +78,33 @@ class ComposerRequireGenerator extends BaseGenerator
         $allPackagesToAdd = array_merge($newPackages, $packagesToUpdate);
 
         if (empty($allPackagesToAdd)) {
-            $this->logger()->info("No changes to composer.json");
             return;
         }
 
-        // Add/update packages
+        $added = [];
+        $updated = [];
         foreach ($allPackagesToAdd as $package => $version) {
             $composer['require'][$package] = $version;
-            $action = isset($existingPackages[$package]) ? 'Updated' : 'Added';
-            $this->logger()->info("{$action} {$package}: {$version}");
+            if (isset($existingPackages[$package])) {
+                $updated[] = "{$package} {$version}";
+            } else {
+                $added[] = "{$package} {$version}";
+            }
         }
 
-        // Sort require section alphabetically
         ksort($composer['require']);
 
-        // Save composer.json with pretty print
         $updatedContent = json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
         $this->updateFile($composerPath, $updatedContent);
 
-        $this->logger()->info("composer.json updated successfully");
-        $this->logger()->info("Run 'composer update' to install the new packages");
+        if (!empty($added)) {
+            $this->logger()->info("  added: " . implode(', ', $added));
+        }
+        if (!empty($updated)) {
+            $this->logger()->info("  updated: " . implode(', ', $updated));
+        }
+
+        $this->addManualStep("run 'composer update' to install added/updated packages");
     }
 
     /**

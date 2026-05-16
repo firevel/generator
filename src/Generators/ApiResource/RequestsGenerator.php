@@ -26,11 +26,11 @@ class RequestsGenerator extends BaseGenerator
             }
             $path = app_path("Http/Requests/Api/" . $resource->name()->singular()->studly()) . '/' . ucfirst($action). "$filename.php";
             $this->createFile($path, $source);
-            $this->logger()->info("# Request created: {$path}");
-            $this->logger()->info('- [Required] Set rules');
-            $this->logger()->info('  - Validation rules https://laravel.com/docs/validation#available-validation-rules');
-            $this->logger()->info('- [Optional] Set authorize() if validation is based on request content.');
         }
+
+        // Emit the hint once for the whole group instead of once per action —
+        // the rules() body looks the same across all five generated requests.
+        $this->logger()?->info("  hint: rules() in generated requests is empty — populate per action");
    }
 
     public function generateSource($action, $resource)

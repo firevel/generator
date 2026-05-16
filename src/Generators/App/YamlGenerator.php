@@ -51,6 +51,5 @@ class YamlGenerator extends BaseGenerator
         );
 
         $this->createFile('app.yaml', $file);
-        $this->logger()->info("app.yaml file generated");
     }
 }

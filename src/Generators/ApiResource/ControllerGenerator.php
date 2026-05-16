@@ -25,6 +25,5 @@ class ControllerGenerator extends BaseGenerator
         $path = app_path('Http/Controllers/Api') . '/' . $resource->name()->plural()->studly() . "Controller.php";
 
         $this->createFile($path, $source);
-        $this->logger()->info("# Controller created: $path");
     }
 }

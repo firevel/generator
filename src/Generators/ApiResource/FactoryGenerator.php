@@ -27,9 +27,5 @@ class FactoryGenerator extends BaseGenerator
         $path = database_path('factories' . '/' . $name . "Factory.php");
 
         $this->createFile($path, $source);
-
-        $this->logger()->info("# Factory created: {$name}Factory");
-        $this->logger()->info('- [Optional] Set factory fields.');
-        $this->logger()->info('  - Available formatters https://fakerphp.github.io/');
     }
 }

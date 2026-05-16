@@ -86,7 +86,7 @@ class MorphMapGenerator extends BaseGenerator
 
         $this->createFile($path, $source);
 
-        $this->logger()->info('# Morph map provider written to app/Providers/MorphMapServiceProvider.php (' . count($morphMap) . ' models)');
+        $this->logger()->info('  morph map: ' . count($morphMap) . ' model(s) mapped');
     }
 
     /**
@@ -105,7 +105,6 @@ class MorphMapGenerator extends BaseGenerator
             && str_contains(file_get_contents($providersPath), 'MorphMapServiceProvider::class');
 
         if ($fileExists && $registered) {
-            $this->logger()->info('MorphMapServiceProvider already registered — refreshing morph map content');
             return;
         }
 
@@ -113,14 +112,12 @@ class MorphMapGenerator extends BaseGenerator
         // both the class and the registration from a clean slate.
         if ($fileExists) {
             if ($this->isDryRun()) {
-                $this->logger()->info("- [dry-run] Would delete stale provider: {$providerPath}");
+                $this->logger()->info("[dry-run] would delete stale provider " . $this->relativePath($providerPath));
             } else {
                 unlink($providerPath);
             }
         }
 
         $this->artisan('make:provider', ['name' => 'MorphMapServiceProvider']);
-
-        $this->logger()->info('Generated and registered App\\Providers\\MorphMapServiceProvider via make:provider');
     }
 }

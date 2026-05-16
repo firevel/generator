@@ -76,7 +76,6 @@ class EnvGenerator extends BaseGenerator
         $confirmedUpdates = [];
         foreach ($varsToUpdate as $key => $values) {
             if ($values['old'] === $values['new']) {
-                $this->logger()->info("Environment variable {$key} already exists with the same value");
                 continue;
             }
 
@@ -94,40 +93,39 @@ class EnvGenerator extends BaseGenerator
         $allVarsToProcess = array_merge($varsToAdd, $confirmedUpdates);
 
         if (empty($allVarsToProcess)) {
-            $this->logger()->info("No changes to .env file");
             return;
         }
 
-        // Update the .env file
+        $added = [];
+        $changed = [];
+
         if (file_exists($envPath)) {
-            // Update existing file
             $updatedLines = [];
             $processedKeys = [];
 
             foreach ($envLines as $line) {
                 $trimmedLine = trim($line);
 
-                // Keep comments and empty lines as is
                 if (empty($trimmedLine) || strpos($trimmedLine, '#') === 0) {
                     $updatedLines[] = $line;
                     continue;
                 }
 
-                // Check if this line contains a variable we're updating
                 if (strpos($line, '=') !== false) {
                     list($key, $value) = explode('=', $line, 2);
                     $key = trim($key);
 
                     if (isset($allVarsToProcess[$key])) {
-                        // Update the value
                         $newValue = $this->formatEnvValue($allVarsToProcess[$key]);
                         $updatedLines[] = "{$key}={$newValue}";
                         $processedKeys[] = $key;
 
-                        $action = isset($confirmedUpdates[$key]) ? 'Updated' : 'Added';
-                        $this->logger()->info("{$action} {$key}={$newValue}");
+                        if (isset($confirmedUpdates[$key])) {
+                            $changed[] = $key;
+                        } else {
+                            $added[] = $key;
+                        }
                     } else {
-                        // Keep the line as is
                         $updatedLines[] = $line;
                     }
                 } else {
@@ -135,29 +133,33 @@ class EnvGenerator extends BaseGenerator
                 }
             }
 
-            // Add new variables that weren't in the file
             foreach ($allVarsToProcess as $key => $value) {
                 if (!in_array($key, $processedKeys)) {
                     $formattedValue = $this->formatEnvValue($value);
                     $updatedLines[] = "{$key}={$formattedValue}";
-                    $this->logger()->info("Added {$key}={$formattedValue}");
+                    $added[] = $key;
                 }
             }
 
             $content = implode("\n", $updatedLines);
         } else {
-            // Create new .env file
             $lines = [];
             foreach ($allVarsToProcess as $key => $value) {
                 $formattedValue = $this->formatEnvValue($value);
                 $lines[] = "{$key}={$formattedValue}";
-                $this->logger()->info("Added {$key}={$formattedValue}");
+                $added[] = $key;
             }
             $content = implode("\n", $lines) . "\n";
         }
 
         $this->updateFile($envPath, $content);
-        $this->logger()->info(".env file updated successfully");
+
+        if (!empty($added)) {
+            $this->logger()->info("  added: " . implode(', ', $added));
+        }
+        if (!empty($changed)) {
+            $this->logger()->info("  changed: " . implode(', ', $changed));
+        }
     }
 
     /**
