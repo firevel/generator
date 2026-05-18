@@ -72,6 +72,17 @@ return [
                 'consolidate' => \Firevel\Generator\Generators\ApiResource\RoutesConsolidatorGenerator::class,
             ],
         ],
+        'seeders' => [
+            'description' => 'Generate one <Set>DataSeeder.php per non-empty set under `seeders.*`, plus DatabaseSeeder.',
+            'input_schema' => [
+                'type' => 'object',
+                'additionalProperties' => ['type' => 'array'],
+            ],
+            'steps' => [
+                'sets' => \Firevel\Generator\Generators\App\DataSeedersGenerator::class,
+                'database-seeder' => \Firevel\Generator\Generators\App\DatabaseSeederGenerator::class,
+            ],
+        ],
         'appengine-app' => [
             'description' => 'Generate a complete App Engine application: app.yaml service, all resources, routes, morph map, composer requires and .env.',
             'input_schema' => [
@@ -83,6 +94,9 @@ return [
                         'minItems' => 1,
                     ],
                     'service' => [
+                        'type' => 'object',
+                    ],
+                    'seeders' => [
                         'type' => 'object',
                     ],
                 ],
@@ -105,6 +119,10 @@ return [
                     'scope' => 'resources',
                     'pipeline' => 'routes',
                 ],
+                [
+                    'scope' => 'seeders',
+                    'pipeline' => 'seeders',
+                ],
                 'morph-map' => \Firevel\Generator\Generators\App\MorphMapGenerator::class,
                 'composer-require' => \Firevel\Generator\Generators\App\ComposerRequireGenerator::class,
                 'env' => \Firevel\Generator\Generators\App\EnvGenerator::class,
@@ -121,6 +139,9 @@ return [
                         'minItems' => 1,
                     ],
                     'service' => ['not' => new \stdClass()],
+                    'seeders' => [
+                        'type' => 'object',
+                    ],
                 ],
             ],
             'input_error_messages' => [
@@ -135,6 +156,10 @@ return [
                 [
                     'scope' => 'resources',
                     'pipeline' => 'routes',
+                ],
+                [
+                    'scope' => 'seeders',
+                    'pipeline' => 'seeders',
                 ],
                 'morph-map' => \Firevel\Generator\Generators\App\MorphMapGenerator::class,
                 'composer-require' => \Firevel\Generator\Generators\App\ComposerRequireGenerator::class,
