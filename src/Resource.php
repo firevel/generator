@@ -86,27 +86,29 @@ class Resource implements Arrayable
     }
 
     /**
-     * Get resource value.
+     * Get resource value. Returns $default when the key is absent.
+     *
+     * Supports dot-notation paths like `model.fillable` for nested access.
+     *
      * @param  string $key
+     * @param  mixed  $default
      * @return mixed
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
-        if (strpos($key, '.')) {
-            return Arr::get($this->attributes, $key);
-        }
-        return $this->attributes[$key];
+        return Arr::get($this->attributes, $key, $default);
     }
 
     /**
-     * Dynamically retrieve attribute.
+     * Dynamically retrieve attribute. Returns null when the key is absent
+     * (matches `has()` / `__isset()` semantics).
      *
      * @param  string  $key
      * @return mixed
      */
     public function __get($key)
     {
-        return $this->attributes[$key];
+        return $this->attributes[$key] ?? null;
     }
 
     /**
