@@ -6,9 +6,25 @@ echo '<?php';
 namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
 use Firevel\Api\Http\Requests\Api\ApiRequest;
+@if ($resource->has('requests.store.imports'))
+@foreach ($resource->get('requests.store.imports') as $import)
+use {{$import}};
+@endforeach
+@endif
+@if ($resource->has('requests.store.use'))
+@foreach ($resource->get('requests.store.use') as $name => $namespace)
+use {{$namespace}};
+@endforeach
+@endif
 
 class Store{{$resource->name()->singular()->studly()}} extends {{$resource->has('requests.store.extends') ? $resource->get('requests.store.extends') : 'ApiRequest' }}
 {
+@if ($resource->has('requests.store.use'))
+@foreach ($resource->get('requests.store.use') as $name => $namespace)
+    use {{$name}};
+@endforeach
+
+@endif
     /**
      * Determine if the user is authorized to make this request.
      *
