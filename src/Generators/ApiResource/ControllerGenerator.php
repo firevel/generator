@@ -15,15 +15,20 @@ class ControllerGenerator extends BaseGenerator
     public function handle()
     {
         $resource = $this->resource();
-        $source = $this->render(
-            'api-resource/controller',
-            [
-                'resource' => $resource,
-            ]
-        );
+        $source = $this->generateSource();
 
         $path = app_path('Http/Controllers/Api') . '/' . $resource->name()->plural()->studly() . "Controller.php";
 
         $this->createFile($path, $source);
+    }
+
+    public function generateSource()
+    {
+        return $this->render(
+            'api-resource/controller',
+            [
+                'resource' => $this->resource(),
+            ]
+        );
     }
 }

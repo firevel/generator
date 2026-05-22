@@ -14,9 +14,25 @@ use App\Http\Requests\Api\{{$resource->name()->singular()->studly()}}\Update{{$r
 use App\Models\{{$resource->name()->singular()->studly()}};
 use App\Transformers\{{$resource->name()->singular()->studly()}}Transformer;
 use Illuminate\Support\Facades\Response;
+@if ($resource->has('controller.imports'))
+@foreach ($resource->controller['imports'] as $import)
+use {{$import}};
+@endforeach
+@endif
+@if ($resource->has('controller.use'))
+@foreach ($resource->controller['use'] as $name => $namespace)
+use {{$namespace}};
+@endforeach
+@endif
 
 class {{$resource->name()->plural()->studly()}}Controller extends Controller
 {
+@if ($resource->has('controller.use'))
+@foreach ($resource->controller['use'] as $name => $namespace)
+    use {{$name}};
+@endforeach
+
+@endif
     /**
      * @var {{$resource->name()->singular()->studly()}}Transformer
      */
