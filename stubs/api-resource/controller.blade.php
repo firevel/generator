@@ -58,10 +58,10 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
      */
     public function index(Index{{$resource->name()->plural()->studly()}} $request)
     {
-        ${{$resource->name()->plural()->lcfirst()}} = {{$resource->name()->singular()->studly()}}::filter($request->filter)
+        ${{$resource->name()->plural()->lcfirst()}} = {{$resource->name()->singular()->studly()}}::filter($request->input('filter'))
             ->visibleBy($request->user())
             ->with($request->getIncludes())
-            ->sort($request->getSort())
+            ->sort($request->input('sort'))
             ->paginate(
                 $request->getPageSize()
             );
