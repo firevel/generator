@@ -73,7 +73,7 @@ class RequestsGeneratorTest extends \Orchestra\Testbench\TestCase
         ]);
         $generator = new RequestsGenerator($resource);
 
-        $this->assertStringContainsString('extends ApiRequest', $generator->generateSource('index', $resource));
+        $this->assertStringContainsString('extends FormRequest', $generator->generateSource('index', $resource));
     }
 
     /** @test */
@@ -177,7 +177,7 @@ class RequestsGeneratorTest extends \Orchestra\Testbench\TestCase
 
         // Class-body trait use anchored on the class declaration.
         $this->assertMatchesRegularExpression(
-            '/class StorePost extends ApiRequest\s*\{\s*\n\s*use HasUploads;/',
+            '/class StorePost extends FormRequest\s*\{\s*\n\s*use HasUploads;/',
             $source
         );
     }
