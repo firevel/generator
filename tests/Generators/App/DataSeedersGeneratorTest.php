@@ -253,4 +253,68 @@ class DataSeedersGeneratorTest extends TestCase
 
         $this->assertSame([], $result['emitted']);
     }
+
+    public function test_renders_nested_invocation_with_assoc_map_arg(): void
+    {
+        // The `nested` directive on the schema-generator side expands to
+        // `Model::create([row])->getKey()` — a chain where the first step's
+        // arg is an assoc map. The data-seeder template must render assoc-map
+        // args inside method calls, not just scalars / scalar-lists.
+        $result = $this->runGenerator([
+            'system' => [
+                ['App\\Models\\Store' => [
+                    'name' => 'Main Store',
+                    'address_id' => ['App\\Models\\Address' => [
+                        'create' => [
+                            'street' => '123 Main',
+                            'city' => 'Springfield',
+                        ],
+                        'getKey' => null,
+                    ]],
+                ]],
+            ],
+        ]);
+
+        $source = file_get_contents($result['paths']['SystemDataSeeder']);
+
+        $this->assertStringContainsString(
+            "'address_id' => \\App\\Models\\Address::create(['street' => '123 Main', 'city' => 'Springfield'])->getKey(),",
+            $source
+        );
+    }
+
+    public function test_renders_deeply_nested_invocation_chain(): void
+    {
+        // Store → Address → Geolocation (depth-2 nesting).
+        $result = $this->runGenerator([
+            'system' => [
+                ['App\\Models\\Store' => [
+                    'address_id' => ['App\\Models\\Address' => [
+                        'create' => [
+                            'street' => '123 Main',
+                            'geolocation_id' => ['App\\Models\\Geolocation' => [
+                                'create' => ['lat' => 40.7, 'lng' => -74.0],
+                                'getKey' => null,
+                            ]],
+                        ],
+                        'getKey' => null,
+                    ]],
+                ]],
+            ],
+        ]);
+
+        $source = file_get_contents($result['paths']['SystemDataSeeder']);
+
+        // The inner Geolocation create + getKey lives inside the Address
+        // create's assoc-map arg.
+        $this->assertStringContainsString(
+            "'geolocation_id' => \\App\\Models\\Geolocation::create(['lat' => 40.7, 'lng' => -74.0])->getKey()",
+            $source
+        );
+        $this->assertStringContainsString(
+            "\\App\\Models\\Address::create([",
+            $source
+        );
+        $this->assertStringContainsString(')->getKey(),', $source);
+    }
 }
