@@ -12,7 +12,7 @@ abstract class BaseGenerator
     protected $logger;
     protected $context;
 
-    public function __construct(Resource $resource, PipelineContext $context = null)
+    public function __construct(Resource $resource, ?PipelineContext $context = null)
     {
         $this->resource = $resource;
         $this->context = $context ?? new PipelineContext(false);

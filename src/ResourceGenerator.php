@@ -11,7 +11,7 @@ class ResourceGenerator
     protected $logger;
     protected $context;
 
-    public function __construct(Resource $resource, array $generators, PipelineContext $context = null)
+    public function __construct(Resource $resource, array $generators, ?PipelineContext $context = null)
     {
         $this->resource = $resource;
         $this->generators = $generators;

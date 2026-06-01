@@ -15,7 +15,7 @@ class ScopedPipelineRunner
     protected $context;
     protected $only;
 
-    public function __construct(Resource $resource, array $scopedSteps, array $allPipelines, PipelineContext $context = null)
+    public function __construct(Resource $resource, array $scopedSteps, array $allPipelines, ?PipelineContext $context = null)
     {
         $this->resource = $resource;
         $this->scopedSteps = $scopedSteps;
