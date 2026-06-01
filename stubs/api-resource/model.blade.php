@@ -5,6 +5,8 @@ echo '<?php';
 
 namespace App\Models;
 
+use Firevel\Api\Includable;
+use Firevel\Api\Paginatable;
 use Firevel\Filterable\Filterable;
 use Firevel\Sortable\Sortable;
 @if ($resource->has('model.observers'))
@@ -41,6 +43,8 @@ class {{$resource->name()->singular()->studly()}} extends {{ $resource->has('mod
     {{$name}},
 @endforeach
 @endif
+    Includable,
+    Paginatable,
     Sortable,
     Filterable;
 

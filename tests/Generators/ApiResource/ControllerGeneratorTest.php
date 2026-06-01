@@ -3,6 +3,7 @@
 namespace Firevel\Generator\Tests\Generator\ApiResource;
 
 use Firevel\Generator\Generators\ApiResource\ControllerGenerator;
+use Firevel\Generator\PipelineContext;
 use Firevel\Generator\Resource;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 
@@ -14,6 +15,41 @@ class ControllerGeneratorTest extends \Orchestra\Testbench\TestCase
     {
         $generator = new ControllerGenerator(new Resource($attributes));
         return $generator->generateSource();
+    }
+
+    private function makeLogger()
+    {
+        return new class {
+            public function info($m) {}
+            public function error($m) {}
+            public function warn($m) {}
+            public function confirm($m, $d = true) { return true; }
+        };
+    }
+
+    public function test_controller_generator_pushes_firevel_api_require(): void
+    {
+        $controllerDir = app_path('Http/Controllers/Api');
+
+        $context = new PipelineContext(true);
+
+        $generator = new ControllerGenerator(new Resource(['name' => 'Post']), $context);
+        $generator->setLogger($this->makeLogger());
+
+        try {
+            $generator->handle();
+
+            $this->assertSame(
+                ['firevel/api' => '^0.1'],
+                $context->get('composer_requires')
+            );
+        } finally {
+            if (is_dir($controllerDir)) {
+                foreach (glob($controllerDir . '/*.php') as $f) {
+                    unlink($f);
+                }
+            }
+        }
     }
 
     public function test_renders_base_controller_without_optional_use_blocks(): void

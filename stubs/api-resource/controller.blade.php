@@ -60,14 +60,12 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
     {
         ${{$resource->name()->plural()->lcfirst()}} = {{$resource->name()->singular()->studly()}}::filter($request->input('filter'))
             ->visibleBy($request->user())
-            ->with($request->getIncludes())
+            ->withIncludes($request->input('include'), $request->user())
             ->sort($request->input('sort'))
-            ->paginate(
-                $request->getPageSize()
-            );
+            ->apiPaginate($request->input('page.size'));
 
         return fractal(${{$resource->name()->plural()->lcfirst()}}, $this->transformer)
-            ->parseIncludes($request->get('include'))
+            ->parseIncludes({{$resource->name()->singular()->studly()}}::includeNames($request->input('include')))
             ->respond();
     }
 
@@ -82,7 +80,7 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
         ${{$resource->name()->singular()->lcfirst()}} = {{$resource->name()->singular()->studly()}}::create($request->validated());
 
         return fractal(${{$resource->name()->singular()->lcfirst()}}, $this->transformer)
-            ->parseIncludes($request->get('include'))
+            ->parseIncludes({{$resource->name()->singular()->studly()}}::includeNames($request->input('include')))
             ->respond(201);
     }
 
@@ -96,7 +94,7 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
     public function show(Show{{$resource->name()->singular()->studly()}} $request, {{$resource->name()->singular()->studly()}} ${{$resource->name()->singular()->lcfirst()}})
     {
         return fractal(${{$resource->name()->singular()->lcfirst()}}, $this->transformer)
-            ->parseIncludes($request->get('include'))
+            ->parseIncludes({{$resource->name()->singular()->studly()}}::includeNames($request->input('include')))
             ->respond();
     }
 
@@ -113,7 +111,7 @@ class {{$resource->name()->plural()->studly()}}Controller extends Controller
             ->save();
 
         return fractal(${{$resource->name()->singular()->lcfirst()}}, $this->transformer)
-            ->parseIncludes($request->get('include'))
+            ->parseIncludes({{$resource->name()->singular()->studly()}}::includeNames($request->input('include')))
             ->respond();
     }
 

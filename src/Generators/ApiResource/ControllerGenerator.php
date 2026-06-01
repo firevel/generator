@@ -14,6 +14,8 @@ class ControllerGenerator extends BaseGenerator
 
     public function handle()
     {
+        $this->requirePackage('firevel/api', '^0.1');
+
         $resource = $this->resource();
         $source = $this->generateSource();
 

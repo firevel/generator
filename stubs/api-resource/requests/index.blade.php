@@ -5,7 +5,7 @@ echo '<?php';
 
 namespace App\Http\Requests\Api\{{$resource->name()->singular()->studly()}};
 
-use Firevel\Api\Http\Requests\Api\ApiRequest;
+use Illuminate\Foundation\Http\FormRequest;
 @if ($resource->has('requests.index.imports'))
 @foreach ($resource->get('requests.index.imports') as $import)
 use {{$import}};
@@ -17,7 +17,7 @@ use {{$namespace}};
 @endforeach
 @endif
 
-class Index{{$resource->name()->plural()->studly()}} extends {{$resource->has('requests.index.extends') ? $resource->get('requests.index.extends') : 'ApiRequest' }}
+class Index{{$resource->name()->plural()->studly()}} extends {{$resource->has('requests.index.extends') ? $resource->get('requests.index.extends') : 'FormRequest' }}
 {
 @if ($resource->has('requests.index.use'))
 @foreach ($resource->get('requests.index.use') as $name => $namespace)
