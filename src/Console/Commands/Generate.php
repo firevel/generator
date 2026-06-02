@@ -248,11 +248,21 @@ class Generate extends Command
      */
     protected function isScopedPipeline(array $pipelineConfig): bool
     {
-        // Check if the first element is an array with 'scope' and 'pipeline' keys
-        $firstElement = reset($pipelineConfig);
+        // A pipeline is scoped (a meta-pipeline) if ANY step is a scoped step
+        // — an array carrying 'scope' and 'pipeline'. Checking only the first
+        // step would misclassify a meta-pipeline that legitimately leads with a
+        // bare class step (e.g. `api-seeders`: a transform class step first,
+        // then a `{scope: seeders, pipeline: seeders}` step). The scoped runner
+        // already handles mixed class + scoped steps; regular pipelines (all
+        // class-string steps) match nothing here and stay non-scoped.
+        foreach ($pipelineConfig as $element) {
+            if (is_array($element)
+                && isset($element['scope'])
+                && isset($element['pipeline'])) {
+                return true;
+            }
+        }
 
-        return is_array($firstElement)
-            && isset($firstElement['scope'])
-            && isset($firstElement['pipeline']);
+        return false;
     }
 }
