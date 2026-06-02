@@ -71,10 +71,23 @@ class {{ $className }} extends Seeder
     {
 @foreach ($entries as $entry)
 @php
-$class = ltrim((string) array_key_first($entry), '\\');
-$fields = $entry[array_key_first($entry)];
+// A belongsToMany pivot link is a model-less, raw table insert:
+//   { "table": "post_tag", "insert": { "post_id": .., "tag_id": .. } }
+// Everything else is a model row keyed by its FQN: { "App\\Models\\X": cols }.
+$isPivot = array_key_exists('table', $entry) && array_key_exists('insert', $entry);
+if ($isPivot) {
+    $pivotTable = $entry['table'];
+    $fields = $entry['insert'];
+} else {
+    $class = ltrim((string) array_key_first($entry), '\\');
+    $fields = $entry[array_key_first($entry)];
+}
 @endphp
+@if ($isPivot)
+        \Illuminate\Support\Facades\DB::table('{{ $pivotTable }}')->insert([
+@else
         \{{ $class }}::insert([
+@endif
 @foreach ($fields as $col => $value)
             '{{ $col }}' => {!! $renderValue($value) !!},
 @endforeach

@@ -317,4 +317,38 @@ class DataSeedersGeneratorTest extends TestCase
         );
         $this->assertStringContainsString(')->getKey(),', $source);
     }
+
+    public function test_renders_pivot_entry_as_raw_db_table_insert(): void
+    {
+        // A belongsToMany pivot link arrives as a model-less { table, insert }
+        // entry and must render as an event-free DB::table()->insert().
+        $result = $this->runGenerator([
+            'demo' => [
+                ['App\\Models\\Post' => ['id' => 1, 'title' => 'Hello']],
+                ['App\\Models\\Tag' => ['id' => 2, 'name' => 'php']],
+                ['table' => 'post_tag', 'insert' => ['post_id' => 1, 'tag_id' => 2]],
+            ],
+        ]);
+
+        $source = file_get_contents($result['paths']['DemoDataSeeder']);
+
+        $this->assertStringContainsString(
+            "\\Illuminate\\Support\\Facades\\DB::table('post_tag')->insert([",
+            $source
+        );
+        $this->assertStringContainsString("'post_id' => 1,", $source);
+        $this->assertStringContainsString("'tag_id' => 2,", $source);
+        // Still emits the model rows normally.
+        $this->assertStringContainsString("\\App\\Models\\Post::insert([", $source);
+
+        try {
+            token_get_all($source, TOKEN_PARSE);
+            $valid = true;
+            $error = null;
+        } catch (\ParseError $e) {
+            $valid = false;
+            $error = $e->getMessage();
+        }
+        $this->assertTrue($valid, "Generated seeder has PHP syntax errors: {$error}\n\n{$source}");
+    }
 }
