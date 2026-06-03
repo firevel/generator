@@ -87,26 +87,24 @@ class InputContractIntegrationTest extends TestCase
     }
 
     /** @test */
-    public function test_generic_app_flags_extra_service_block_with_suggestion()
+    public function test_generic_app_accepts_and_ignores_a_service_block()
     {
-        $jsonFile = tempnam(sys_get_temp_dir(), 'contract_') . '.json';
-        file_put_contents($jsonFile, json_encode([
-            'service' => ['name' => 'api', 'runtime' => 'php83'],
-            'resources' => [['name' => 'Article']],
-        ]));
+        // generic-app does not consume `service`, but passing one should be
+        // tolerated (ignored) rather than rejected.
+        $manager = app(\Firevel\Generator\FirevelGeneratorManager::class);
+        $schema = $manager->getInputSchema('generic-app');
+        $messages = $manager->getInputErrorMessages('generic-app');
 
-        try {
-            $exit = Artisan::call('firevel:generate', [
-                'pipeline' => 'generic-app',
-                '--json' => $jsonFile,
-            ]);
-            $output = Artisan::output();
+        $errors = \Firevel\Generator\Validation\InputSchemaValidator::validate(
+            [
+                'service' => ['name' => 'api', 'runtime' => 'php83'],
+                'resources' => [['name' => 'Article']],
+            ],
+            $schema,
+            $messages,
+            'generic-app'
+        );
 
-            $this->assertSame(1, $exit);
-            $this->assertStringContainsString('`service`', $output);
-            $this->assertStringContainsString('appengine-app', $output);
-        } finally {
-            unlink($jsonFile);
-        }
+        $this->assertSame([], $errors);
     }
 }

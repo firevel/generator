@@ -129,7 +129,7 @@ return [
             ],
         ],
         'generic-app' => [
-            'description' => 'Generate a generic Laravel application: all resources, routes, morph map, composer requires and .env (no App Engine service).',
+            'description' => 'Generate a generic Laravel application: all resources, routes, morph map, composer requires and .env.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['resources'],
@@ -138,7 +138,6 @@ return [
                         'type' => 'array',
                         'minItems' => 1,
                     ],
-                    'service' => ['not' => new \stdClass()],
                     'seeders' => [
                         'type' => 'object',
                     ],
@@ -146,7 +145,6 @@ return [
             ],
             'input_error_messages' => [
                 '/resources' => "Pipeline 'generic-app' iterates `resources.*`. Provide a non-empty top-level `resources` array.",
-                '/service' => "Pipeline 'generic-app' does not consume a `service` block — use 'appengine-app' if you want an App Engine service descriptor generated alongside the resources.",
             ],
             'steps' => [
                 [
